@@ -40,12 +40,13 @@ This module will be sure to create the following resource:
 
 Optionally, If variable `create_cam_strategy` was set to `true` (Default), it will also create TKE related CAM role and policies and associate them:
 
-- CAM Role `TF_TKE_QCSRole` - to grant tke service API permission: `sts:AssumeRole`
+- CAM Role `TKE_QCSRole` - to grant tke service API permission: `sts:AssumeRole`
 - CAM Policy `TF_QcloudAccessForTKERoleInOpsManagement` - Provides CLS permissions for Ops management.
 - CAM Policy `TF_QcloudAccessForTKERole` - Provides partial API permission of cvm, tag, clb, cls, ssl, cvm, e.g.
 
-NOTE: If you've already granted the TKE Service Permission by operating in TencentCloud Console, you won't need these resources, set `create_cam_strategy` to `false`.
-
+NOTE: 
+- If you've already granted the TKE Service Permission by operating in TencentCloud Console, you won't need these resources, set `create_cam_strategy` to `false`.
+- Destroy Infrastructure will also destroy `TKE_QCSRole` if enabled, you can re-create in TencentCloud Console.
 
 ## Variables
 

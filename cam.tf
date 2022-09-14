@@ -1,6 +1,6 @@
-resource "tencentcloud_cam_role" "TF_TKE_QCSRole" {
+resource "tencentcloud_cam_role" "TKE_QSCRole" {
   count       = var.create_cam_strategy ? 1 : 0
-  name        = "TF_TKE_QCSRole"
+  name        = "TKE_QSCRole"
   document    = <<EOF
 {
   "statement": [
@@ -84,7 +84,7 @@ resource "tencentcloud_cam_policy" "OpsMgr" {
           "cls:DescribeMachineGroups",
           "cls:ModifyMachineGroup"
         ],
-        "resource" : "*",
+        "resource" : ["*"],
         "effect" : "allow"
       }
     ]
@@ -138,7 +138,7 @@ resource "tencentcloud_cam_policy" "QCA" {
           "cam:ListMaskedSubAccounts",
           "cam:GetUserBasicInfo"
         ],
-        "resource" : "*",
+        "resource" : ["*"],
         "effect" : "allow"
       }
     ]
@@ -148,13 +148,13 @@ resource "tencentcloud_cam_policy" "QCA" {
 resource "tencentcloud_cam_role_policy_attachment" "QCS_OpsMgr" {
   count = var.create_cam_strategy ? 1 : 0
 
-  role_id   = lookup(tencentcloud_cam_role.TF_TKE_QCSRole.0, "id")
+  role_id   = lookup(tencentcloud_cam_role.TKE_QSCRole.0, "id")
   policy_id = lookup(tencentcloud_cam_policy.OpsMgr.0, "id")
 }
 
 resource "tencentcloud_cam_role_policy_attachment" "QCS_QCA" {
   count = var.create_cam_strategy ? 1 : 0
 
-  role_id   = lookup(tencentcloud_cam_role.TF_TKE_QCSRole.0, "id")
+  role_id   = lookup(tencentcloud_cam_role.TKE_QSCRole.0, "id")
   policy_id = lookup(tencentcloud_cam_policy.QCA.0, "id")
 }
