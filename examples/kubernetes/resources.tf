@@ -1,4 +1,5 @@
 resource "kubernetes_namespace" "test" {
+  depends_on = [tencentcloud_security_group_lite_rule.this]
   metadata {
     name = "nginx"
   }

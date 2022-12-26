@@ -1,18 +1,3 @@
-# Networks
-output "vpc_id" {
-  value       = tencentcloud_vpc.vpc.id
-  description = "Id of VPC which created by this module."
-}
-
-output "subnet_id" {
-  value       = tencentcloud_subnet.subnet.id
-  description = "Id of subnet belongs to module-created VPC."
-}
-
-output "security_group_id" {
-  value       = tencentcloud_security_group.sg.id
-  description = "Security group id."
-}
 
 # TKEs
 output "cluster_id" {

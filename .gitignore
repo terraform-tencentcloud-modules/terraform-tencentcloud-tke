@@ -6,3 +6,5 @@
 *.tfvars
 *.tfstate
 *.tfstate.backup
+
+provider.tf

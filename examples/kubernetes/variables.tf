@@ -1,5 +1,6 @@
 variable "accept_ip" {
-  type = string
+  type    = string
+  default = "27.38.70.216"
 }
 
 variable "region" {
@@ -7,5 +8,5 @@ variable "region" {
 }
 
 variable "available_zone" {
-  default = "ap-guangzhou-3"
+  default = "ap-guangzhou-6"
 }
