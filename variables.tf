@@ -65,7 +65,7 @@ variable "cluster_cidr" {
 
 variable "cluster_os" {
   type        = string
-  default     = "tlinux2.2(tkernel3)x86_64"
+  default     = "tlinux2.4(tkernel4)x86_64"
   description = "Cluster operation system image name."
 }
 
