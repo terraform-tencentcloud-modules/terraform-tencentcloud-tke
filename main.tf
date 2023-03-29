@@ -126,3 +126,18 @@ resource "tencentcloud_kubernetes_node_pool" "this" {
     }
   }
 }
+
+resource "tencentcloud_kubernetes_serverless_node_pool" "this" {
+  for_each   = var.self_managed_serverless_node_groups
+  name       = try(each.value.name, each.key)
+  cluster_id = tencentcloud_kubernetes_cluster.cluster.id
+  dynamic "serverless_nodes" {
+    for_each = try(each.value.serverless_nodes, null)
+    content {
+      display_name = try(serverless_nodes.value.display_name, null)
+      subnet_id    = try(serverless_nodes.value.subnet_id, null)
+    }
+  }
+  security_group_ids = try(each.value.security_group_ids, null)
+  labels             = try(each.value.labels, null)
+}

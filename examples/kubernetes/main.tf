@@ -125,6 +125,26 @@ module "tencentcloud_tke" {
     }
   }
 
+  self_managed_serverless_node_groups = {
+    test = {
+      name = "example_node_pool"
+      serverless_nodes = [{
+        display_name = "serverless_node1"
+        subnet_id    = tencentcloud_subnet.intranet.id
+        },
+        {
+          display_name = "serverless_node2"
+          subnet_id    = tencentcloud_subnet.intranet.id
+        },
+      ]
+      security_group_ids = [tencentcloud_security_group.this.id]
+      labels = {
+        "example1" : "test1",
+        "example2" : "test2",
+      }
+    }
+  }
+
 }
 
 provider "kubernetes" {

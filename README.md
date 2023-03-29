@@ -133,11 +133,34 @@ create node pool:
 
 ```
 
+create serverless node pool:
+```hcl
+  self_managed_serverless_node_groups = {
+    test = {
+      name = "example_node_pool"
+      serverless_nodes = [{
+        display_name = "serverless_node1"
+        subnet_id    = tencentcloud_subnet.intranet.id
+      },
+      {
+        display_name = "serverless_node2"
+        subnet_id    = tencentcloud_subnet.intranet.id
+      },
+      ]
+      security_group_ids = [tencentcloud_security_group.this.id]
+      labels = {
+        "example1" : "test1",
+        "example2" : "test2",
+      }
+    }
+  }
+```
 
 ## Resources
 This module will be sure to create the following resource:
 - 1 managed TKE Cluster.
 - At least 1 CVM instance used as TKE worker node.
+- Create one or more serverless node pool of TKE Cluster.
 
 Optionally, If variable `create_cam_strategy` was set to `true` (Default), it will also create TKE related CAM role and policies and associate them:
 
