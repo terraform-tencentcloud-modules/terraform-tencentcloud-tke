@@ -171,3 +171,13 @@ variable "self_managed_node_groups" {
   type        = any
   default     = {}
 }
+
+################################################################################
+# Self Managed Serverless Node Group
+################################################################################
+
+variable "self_managed_serverless_node_groups" {
+  description = "Map of self-managed serverless node pool definitions to create. see `tencentcloud_kubernetes_serverless_node_pool` "
+  type        = any
+  default     = {}
+}
