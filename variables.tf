@@ -44,6 +44,30 @@ variable "node_security_group_id" {
   default     = null
 }
 
+variable "network_type" {
+  description = "Cluster network type, GR or VPC-CNI. Default is GR."
+  type        = string
+  default     = "GR"
+}
+
+variable "eni_subnet_ids" {
+  description = "Subnet Ids for cluster with VPC-CNI network mode. This field can only set when field network_type is 'VPC-CNI'."
+  type        = list(string)
+  default     = []
+}
+
+variable "claim_expired_seconds" {
+  type        = number
+  default     = 300
+  description = "Claim expired seconds to recycle ENI. This field can only set when field network_type is 'VPC-CNI'. claim_expired_seconds must greater or equal than 300 and less than 15768000."
+}
+
+variable "cluster_max_service_num" {
+  type        = number
+  default     = 256
+  description = "A network address block of the service. Different from vpc cidr and cidr of other clusters within this vpc. Must be in 10./192.168/172.[16-31] segments."
+}
+
 # TKE
 variable "cluster_name" {
   type        = string

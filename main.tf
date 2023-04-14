@@ -17,7 +17,10 @@ resource "tencentcloud_kubernetes_cluster" "cluster" {
   cluster_intranet_subnet_id      = var.cluster_private_access ? var.cluster_private_access_subnet_id : null
   vpc_id                          = var.vpc_id
   service_cidr                    = var.cluster_service_cidr
-
+  network_type                    = var.network_type
+  eni_subnet_ids                  = var.eni_subnet_ids
+  claim_expired_seconds           = var.claim_expired_seconds
+  cluster_max_service_num         = var.cluster_max_service_num
   worker_config {
     availability_zone          = var.available_zone
     count                      = var.worker_count
