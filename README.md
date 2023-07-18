@@ -3,7 +3,8 @@
 A Terraform module which creates TencentCloud Kubernetes Engine (TKE) clusters and resource dependencies.
 
 ## Usage
-
+### Warm-Up
+Let's create a basic TKE instance with the necessary configuration, which includes security group, vpc, subnet, and region.
 ```hcl
 provider "tencentcloud" {
   region = var.region
@@ -31,9 +32,6 @@ resource "tencentcloud_security_group_lite_rule" "this" {
   security_group_id = tencentcloud_security_group.this.id
 
   ingress = [
-    "ACCEPT#0.0.0.0/0#443#TCP",
-    "ACCEPT#10.0.0.0/16#ALL#ALL",
-    "ACCEPT#172.16.0.0/22#ALL#ALL",
     "ACCEPT#${var.accept_ip}#ALL#ALL",
     "DROP#0.0.0.0/0#ALL#ALL"
   ]
@@ -48,16 +46,15 @@ module "tencentcloud_tke" {
   available_zone           = var.available_zone # Available zone must belongs to the region.
   vpc_id                   = tencentcloud_vpc.this.id
   subnet_id                = tencentcloud_subnet.intranet.id
-  enhanced_monitor_service = true
 
   cluster_public_access     = true
   cluster_security_group_id = tencentcloud_security_group.this.id
+  node_security_group_id    = tencentcloud_security_group.this.id
 
   cluster_private_access           = true
   cluster_private_access_subnet_id = tencentcloud_subnet.intranet.id
 
-  node_security_group_id = tencentcloud_security_group.this.id
-
+  enhanced_monitor_service = true
   enable_event_persistence = true
   enable_cluster_audit_log = true
 
@@ -66,6 +63,7 @@ module "tencentcloud_tke" {
   tags = {
     module = "tke"
   }
+}
 
 # Configure Kubernetes Provider
 provider "kubernetes" {
@@ -76,11 +74,20 @@ provider "kubernetes" {
 }
 ```
 
-create node pool:
-```hcl
+### Create node pool with managed cluster:
+After the warm-up process, you have obtained a managed cluster.
 
+To conveniently create, manage, and terminate nodes and dynamically scale nodes in or out. You may want to introduce a node pool with an existing cluster. Visit [Node Pool](https://cloud.tencent.com/document/product/457/43719) for more information.
+
+Now, let's create a node pool on this cluster.
+
+Just add the following code block `self_managed_node_groups` into your module block.
+```hcl
+module "tencentcloud_tke" {
+  # ...your module created in the above section...
   self_managed_node_groups = {
     test = {
+      name                     = "example_np"
       max_size                 = 6
       min_size                 = 1
       subnet_ids               = [tencentcloud_subnet.intranet.id]
@@ -130,14 +137,20 @@ create node pool:
       }]
     }
   }
+}
 
 ```
 
-create serverless node pool:
+### Create serverless node pool with managed cluster:
+Alternatively, a serverless node pool can be created with an existing cluster. This kind of node pool makes elasticity faster and more efficient. Visit [SuperNode Pool](https://cloud.tencent.com/document/product/457/74014) for more information.
+
+
 ```hcl
+module "tencentcloud_tke" {
+  # ...your module created in the above section...
   self_managed_serverless_node_groups = {
     test = {
-      name = "example_node_pool"
+      name = "example_serverless_np"
       serverless_nodes = [{
         display_name = "serverless_node1"
         subnet_id    = tencentcloud_subnet.intranet.id
@@ -154,6 +167,7 @@ create serverless node pool:
       }
     }
   }
+}
 ```
 
 ## Resources
