@@ -53,7 +53,7 @@ module "tencentcloud_tke" {
   source                   = "../../"
   available_zone           = var.available_zone # Available zone must belongs to the region.
   vpc_id                   = tencentcloud_vpc.this.id
-  intranet_subnet_id       = tencentcloud_subnet.intranet.id
+  subnet_id                = tencentcloud_subnet.intranet.id
   enhanced_monitor_service = true
 
   cluster_public_access     = true

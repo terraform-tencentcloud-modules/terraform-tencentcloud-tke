@@ -26,16 +26,16 @@ variable "vpc_id" {
   description = "Specify the vpc_id of tke cluster."
 }
 
-variable "intranet_subnet_id" {
+variable "subnet_id" {
   type        = string
   default     = ""
-  description = "Specify custom Subnet id for intranet."
+  description = "Specify the subnet_id of tke cluster."
 }
 
 variable "cluster_security_group_id" {
   type        = string
   default     = null
-  description = ""
+  description = "Name to use on cluster security group"
 }
 
 variable "node_security_group_id" {
@@ -108,7 +108,7 @@ variable "cluster_private_access" {
 variable "cluster_private_access_subnet_id" {
   type        = string
   default     = null
-  description = ""
+  description = "Specify subnet_id for cluster private access."
 }
 
 variable "worker_count" {

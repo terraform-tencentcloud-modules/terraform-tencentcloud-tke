@@ -63,7 +63,7 @@ module "tencentcloud_tke" {
   source                   = "../../"
   available_zone           = var.available_zone # Available zone must belongs to the region.
   vpc_id                   = tencentcloud_vpc.this.id
-  intranet_subnet_id       = tencentcloud_subnet.intranet.id
+  subnet_id                = tencentcloud_subnet.intranet.id
   enhanced_monitor_service = true
 
   cluster_public_access     = true
@@ -83,12 +83,12 @@ module "tencentcloud_tke" {
     module = "tke"
   }
   ###Critical configuration start###
-  network_type = "VPC-CNI"
+  network_type   = "VPC-CNI"
   eni_subnet_ids = [tencentcloud_subnet.intranet.id]
   ### If you do not know how to choose cidr, you can refer to the process created in the console
   ##  https://console.tencentcloud.com/tke2/cluster/create?rid=1
   cluster_service_cidr = "10.0.0.0/22"
-  cluster_cidr=""
+  cluster_cidr         = ""
   ##the cluster_max_service_num is determined according to cluster_service_cidr.Its default value is 256####
   cluster_max_service_num = 1024
   ###Critical configuration end###
