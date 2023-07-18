@@ -45,7 +45,7 @@ module "tencentcloud_tke" {
   source                   = "../../"
   available_zone           = var.available_zone # Available zone must belongs to the region.
   vpc_id                   = tencentcloud_vpc.this.id
-  subnet_id                = tencentcloud_subnet.intranet.id
+  intranet_subnet_id       = tencentcloud_subnet.intranet.id
 
   cluster_public_access     = true
   cluster_security_group_id = tencentcloud_security_group.this.id
@@ -202,7 +202,7 @@ NOTE:
 | create_cam_strategy              |    bool     | true                      | Specify whether to create CAM role and relative TKE essential policy. Set to false if you've enable by using TencentCloud Console.                               |
 | tags                             | map(string) | {"terraform":"example"}   | Tagged for all associated resource of this module.                                                                                                               |
 | vpc_id                           |   string    | null                      | Specify custom VPC id.                                                                                                                                           |
-| subnet_id                        |   string    | null                      | Specify a subnet id for intranet.                                                                                                                                |
+| intranet_subnet_id               |   string    | null                      | Specify a subnet id for intranet.                                                                                                                                |
 | worker_count                     |   number    | 1                         | Specify node count.                                                                                                                                              |
 | worker_instance_type             |   string    | S5.MEDIUM2                | Cluster node instance type.                                                                                                                                      |
 | node_security_group_id           |   string    | null                      | Specify custom Security Group id to nodes.                                                                                                                       |

@@ -25,7 +25,7 @@ resource "tencentcloud_kubernetes_cluster" "cluster" {
     availability_zone          = var.available_zone
     count                      = var.worker_count
     instance_type              = var.worker_instance_type
-    subnet_id                  = var.subnet_id
+    subnet_id                  = var.intranet_subnet_id
     security_group_ids         = [var.node_security_group_id]
     enhanced_monitor_service   = var.enhanced_monitor_service
     public_ip_assigned         = true
@@ -76,7 +76,7 @@ resource "tencentcloud_kubernetes_node_pool" "this" {
   max_size                 = try(each.value.max_size, each.value.min_size, 1)
   min_size                 = try(each.value.min_size, each.value.max_size, 1)
   vpc_id                   = var.vpc_id
-  subnet_ids               = try(each.value.subnet_ids, [var.subnet_id])
+  subnet_ids               = try(each.value.subnet_ids, [var.intranet_subnet_id])
   retry_policy             = try(each.value.retry_policy, null)
   desired_capacity         = try(each.value.desired_capacity, null)
   enable_auto_scale        = try(each.value.enable_auto_scale, null)

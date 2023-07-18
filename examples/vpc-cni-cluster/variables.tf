@@ -1,6 +1,6 @@
 variable "accept_ip" {
   type    = string
-  default = "27.38.70.216"
+  default = "x.x.x.x"
 }
 
 variable "region" {

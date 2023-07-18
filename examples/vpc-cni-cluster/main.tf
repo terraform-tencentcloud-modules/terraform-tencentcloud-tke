@@ -60,7 +60,7 @@ module "tencentcloud_tke" {
   source                   = "../../"
   available_zone           = var.available_zone # Available zone must belongs to the region.
   vpc_id                   = tencentcloud_vpc.this.id
-  subnet_id                = tencentcloud_subnet.intranet.id
+  intranet_subnet_id       = tencentcloud_subnet.intranet.id
   enhanced_monitor_service = true
 
   cluster_public_access     = true
@@ -91,6 +91,7 @@ module "tencentcloud_tke" {
   ###Critical configuration end###
   self_managed_node_groups = {
     test = {
+      name                     = "example_np"
       max_size                 = 6
       min_size                 = 1
       subnet_ids               = [tencentcloud_subnet.intranet.id]
