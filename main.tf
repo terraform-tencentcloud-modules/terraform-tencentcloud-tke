@@ -1,3 +1,4 @@
+# Speficy the random password for the nodes
 resource "random_password" "worker_pwd" {
   length           = 12
   min_numeric      = 1

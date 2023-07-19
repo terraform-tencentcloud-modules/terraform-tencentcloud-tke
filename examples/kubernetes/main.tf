@@ -37,9 +37,6 @@ resource "tencentcloud_security_group_lite_rule" "this" {
   security_group_id = tencentcloud_security_group.this.id
 
   ingress = [
-    "ACCEPT#0.0.0.0/0#443#TCP",
-    "ACCEPT#10.0.0.0/16#ALL#ALL",
-    "ACCEPT#172.16.0.0/22#ALL#ALL",
     "ACCEPT#${var.accept_ip}#ALL#ALL",
     "DROP#0.0.0.0/0#ALL#ALL"
   ]
@@ -127,7 +124,7 @@ module "tencentcloud_tke" {
 
   self_managed_serverless_node_groups = {
     test = {
-      name = "example_node_pool"
+      name = "example_serverless_np"
       serverless_nodes = [{
         display_name = "serverless_node1"
         subnet_id    = tencentcloud_subnet.intranet.id

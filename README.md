@@ -3,7 +3,8 @@
 A Terraform module which creates TencentCloud Kubernetes Engine (TKE) clusters and resource dependencies.
 
 ## Usage
-
+### Warm-Up
+Let's create a basic TKE instance with the necessary configuration, which includes security group, vpc, subnet, and region.
 ```hcl
 provider "tencentcloud" {
   region = var.region
@@ -15,6 +16,7 @@ resource "tencentcloud_vpc" "this" {
   name       = "tke-test"
 }
 
+# Specify the subnet of intranet
 resource "tencentcloud_subnet" "intranet" {
   cidr_block        = "10.0.1.0/24"
   name              = "tke-subnet"
@@ -27,14 +29,12 @@ resource "tencentcloud_security_group" "this" {
   name = "tke-security-group"
 }
 
+# Specify the ingress and egress rules for the security group
 resource "tencentcloud_security_group_lite_rule" "this" {
   security_group_id = tencentcloud_security_group.this.id
 
   ingress = [
-    "ACCEPT#0.0.0.0/0#443#TCP",
-    "ACCEPT#10.0.0.0/16#ALL#ALL",
-    "ACCEPT#172.16.0.0/22#ALL#ALL",
-    "ACCEPT#${var.accept_ip}#ALL#ALL",
+    "ACCEPT#${var.accept_ip}#ALL#ALL", # your ip address
     "DROP#0.0.0.0/0#ALL#ALL"
   ]
 
@@ -43,31 +43,38 @@ resource "tencentcloud_security_group_lite_rule" "this" {
   ]
 }
 
+# using module to create TKE resource
 module "tencentcloud_tke" {
   source                   = "../../"
   available_zone           = var.available_zone # Available zone must belongs to the region.
   vpc_id                   = tencentcloud_vpc.this.id
   intranet_subnet_id       = tencentcloud_subnet.intranet.id
-  enhanced_monitor_service = true
 
+  # public access configuration
   cluster_public_access     = true
   cluster_security_group_id = tencentcloud_security_group.this.id
 
+  # security group for worker nodes
+  node_security_group_id    = tencentcloud_security_group.this.id
+
+  # private access configuration
   cluster_private_access           = true
   cluster_private_access_subnet_id = tencentcloud_subnet.intranet.id
 
-  node_security_group_id = tencentcloud_security_group.this.id
-
+  # monitor, event audit log configuration for cluster
+  enhanced_monitor_service = true
   enable_event_persistence = true
   enable_cluster_audit_log = true
 
+  # specify the bandwidth for public access
   worker_bandwidth_out = 100
 
   tags = {
     module = "tke"
   }
+}
 
-# Configure Kubernetes Provider
+# Configure Kubernetes Provider with TKE resource
 provider "kubernetes" {
   host                   = module.tke.cluster_endpoint
   cluster_ca_certificate = module.tke.cluster_ca_certificate
@@ -76,11 +83,20 @@ provider "kubernetes" {
 }
 ```
 
-create node pool:
-```hcl
+### Create node pool with managed cluster:
+After the warm-up process, you have obtained a managed cluster.
 
+To conveniently create, manage, and terminate nodes and dynamically scale nodes in or out. You may want to introduce a node pool with an existing cluster. Visit [Node Pool](https://cloud.tencent.com/document/product/457/43719) for more information.
+
+Now, let's create a node pool on this cluster.
+
+Just add the following code block `self_managed_node_groups` into your module block.
+```hcl
+module "tencentcloud_tke" {
+  # ...your module created in the above section...
   self_managed_node_groups = {
     test = {
+      name                     = "example_np"
       max_size                 = 6
       min_size                 = 1
       subnet_ids               = [tencentcloud_subnet.intranet.id]
@@ -89,12 +105,15 @@ create node pool:
       enable_auto_scale        = true
       multi_zone_subnet_policy = "EQUALITY"
 
+      # Specify the auto scale configuration
       auto_scaling_config = [{
+        # Specify the type, disk specification for node pool
         instance_type      = "S5.MEDIUM2"
         system_disk_type   = "CLOUD_PREMIUM"
         system_disk_size   = 50
         security_group_ids = [tencentcloud_security_group.this.id]
 
+        # Specify the data disk for the nodes of pool
         data_disk = [{
           disk_type = "CLOUD_PREMIUM"
           disk_size = 50
@@ -114,6 +133,7 @@ create node pool:
         "test2" = "test2",
       }
 
+      # Specify taint policy
       taints = [{
         key    = "test_taint"
         value  = "taint_value"
@@ -125,35 +145,51 @@ create node pool:
           effect = "PreferNoSchedule"
       }]
 
+      # Specify node arguments
       node_config = [{
         extra_args = ["root-dir=/var/lib/kubelet"]
       }]
     }
   }
+}
 
 ```
 
-create serverless node pool:
+### Create serverless node pool with managed cluster:
+Alternatively, a serverless node pool can be created with an existing cluster. This kind of node pool makes elasticity faster and more efficient. You may only care about the subnet instead of the complicated node's configuration. Visit [SuperNode Pool](https://cloud.tencent.com/document/product/457/74014) for more information.
+
+
 ```hcl
+module "tencentcloud_tke" {
+  # ...your module created in the above section...
   self_managed_serverless_node_groups = {
     test = {
-      name = "example_node_pool"
+      # name of the serverless node pool
+      name = "example_serverless_np"
+      # In this resource, we try to create two nodes in the node pool
+      # Specify the first node
       serverless_nodes = [{
         display_name = "serverless_node1"
+        # you only need to specify the subnet instead of the complicated node's configuration
         subnet_id    = tencentcloud_subnet.intranet.id
       },
+      # Specify the Second node
       {
         display_name = "serverless_node2"
         subnet_id    = tencentcloud_subnet.intranet.id
       },
       ]
+      # Specify the security group for the serverless node pool
       security_group_ids = [tencentcloud_security_group.this.id]
+
+      # Specify labels
       labels = {
         "example1" : "test1",
         "example2" : "test2",
       }
     }
   }
+}
 ```
 
 ## Resources

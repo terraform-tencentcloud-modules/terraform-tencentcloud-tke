@@ -35,7 +35,7 @@ variable "intranet_subnet_id" {
 variable "cluster_security_group_id" {
   type        = string
   default     = null
-  description = ""
+  description = "Name to use on cluster security group"
 }
 
 variable "node_security_group_id" {
@@ -108,7 +108,7 @@ variable "cluster_private_access" {
 variable "cluster_private_access_subnet_id" {
   type        = string
   default     = null
-  description = ""
+  description = "Specify subnet_id for cluster private access."
 }
 
 variable "worker_count" {

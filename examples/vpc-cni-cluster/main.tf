@@ -47,9 +47,6 @@ resource "tencentcloud_security_group_lite_rule" "this" {
   security_group_id = tencentcloud_security_group.this.id
 
   ingress = [
-    "ACCEPT#0.0.0.0/0#443#TCP",
-    "ACCEPT#10.0.0.0/16#ALL#ALL",
-    "ACCEPT#172.16.0.0/22#ALL#ALL",
     "ACCEPT#${var.accept_ip}#ALL#ALL",
     "DROP#0.0.0.0/0#ALL#ALL"
   ]
@@ -83,17 +80,18 @@ module "tencentcloud_tke" {
     module = "tke"
   }
   ###Critical configuration start###
-  network_type = "VPC-CNI"
+  network_type   = "VPC-CNI"
   eni_subnet_ids = [tencentcloud_subnet.intranet.id]
   ### If you do not know how to choose cidr, you can refer to the process created in the console
   ##  https://console.tencentcloud.com/tke2/cluster/create?rid=1
   cluster_service_cidr = "10.0.0.0/22"
-  cluster_cidr=""
+  cluster_cidr         = ""
   ##the cluster_max_service_num is determined according to cluster_service_cidr.Its default value is 256####
   cluster_max_service_num = 1024
   ###Critical configuration end###
   self_managed_node_groups = {
     test = {
+      name                     = "example_np"
       max_size                 = 6
       min_size                 = 1
       subnet_ids               = [tencentcloud_subnet.intranet.id]
@@ -146,7 +144,7 @@ module "tencentcloud_tke" {
 
   self_managed_serverless_node_groups = {
     test = {
-      name = "example_node_pool"
+      name = "example_serverless_np"
       serverless_nodes = [{
         display_name = "serverless_node1"
         subnet_id    = tencentcloud_subnet.intranet.id
