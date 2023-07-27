@@ -1,6 +1,12 @@
+resource "random_string" "randomname" {
+  length  = 6
+  special = false
+  upper   = false
+}
+
 resource "tencentcloud_cam_role" "TKE_QSCRole" {
   count       = var.create_cam_strategy ? 1 : 0
-  name        = "TKE_QSCRole"
+  name        = format("TKE_QSCRole_%s", random_string.randomname.id)
   document    = <<EOF
 {
   "statement": [
@@ -22,7 +28,7 @@ resource "tencentcloud_cam_policy" "OpsMgr" {
 
   count = var.create_cam_strategy ? 1 : 0
 
-  name = "TF_QcloudAccessForTKERoleInOpsManagement"
+  name = format("TF_QcloudAccessForTKERoleInOpsManagement_%s", random_string.randomname.id)
   document = jsonencode({
     "version" : "2.0",
     "statement" : [
@@ -94,7 +100,7 @@ resource "tencentcloud_cam_policy" "OpsMgr" {
 resource "tencentcloud_cam_policy" "QCA" {
   count = var.create_cam_strategy ? 1 : 0
 
-  name = "TF_QcloudAccessForTKERole"
+  name = format("TF_QcloudAccessForTKERole_%s", random_string.randomname.id)
   document = jsonencode({
     "version" : "2.0",
     "statement" : [

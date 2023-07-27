@@ -1,4 +1,3 @@
-# Speficy the random password for the nodes
 resource "random_password" "worker_pwd" {
   length           = 12
   min_numeric      = 1
@@ -12,27 +11,34 @@ resource "tencentcloud_kubernetes_cluster" "cluster" {
   cluster_version                 = var.cluster_version
   cluster_cidr                    = var.cluster_cidr
   cluster_os                      = var.cluster_os
-  cluster_internet                = var.cluster_public_access
-  cluster_internet_security_group = var.cluster_public_access ? var.cluster_security_group_id : null
-  cluster_intranet                = var.cluster_private_access
-  cluster_intranet_subnet_id      = var.cluster_private_access ? var.cluster_private_access_subnet_id : null
+  container_runtime               = var.container_runtime
+  cluster_level                   = var.cluster_level
+  cluster_max_pod_num             = var.cluster_max_pod_num
+  cluster_internet                = var.create_endpoint_with_cluster ? var.cluster_public_access : false
+  cluster_internet_security_group = var.create_endpoint_with_cluster ? (var.cluster_public_access ? var.cluster_security_group_id : null) : null
+  cluster_intranet                = var.create_endpoint_with_cluster ? var.cluster_private_access : false
+  cluster_intranet_subnet_id      = var.create_endpoint_with_cluster ? (var.cluster_private_access ? var.cluster_private_access_subnet_id : null) : null
   vpc_id                          = var.vpc_id
   service_cidr                    = var.cluster_service_cidr
   network_type                    = var.network_type
   eni_subnet_ids                  = var.eni_subnet_ids
   claim_expired_seconds           = var.claim_expired_seconds
   cluster_max_service_num         = var.cluster_max_service_num
-  worker_config {
-    availability_zone          = var.available_zone
-    count                      = var.worker_count
-    instance_type              = var.worker_instance_type
-    subnet_id                  = var.intranet_subnet_id
-    security_group_ids         = [var.node_security_group_id]
-    enhanced_monitor_service   = var.enhanced_monitor_service
-    public_ip_assigned         = true
-    internet_max_bandwidth_out = var.worker_bandwidth_out
-    # check the internal message on your account message center if needed
-    password = random_password.worker_pwd.result
+
+  dynamic "worker_config" {
+    for_each = var.create_workers_with_cluster == true ? [1] : []
+    content {
+      availability_zone           = var.available_zone
+      count                       = var.worker_count
+      instance_type               = var.worker_instance_type
+      subnet_id                   = var.intranet_subnet_id
+      security_group_ids          = [var.node_security_group_id]
+      enhanced_monitor_service    = var.enhanced_monitor_service
+      public_ip_assigned          = true
+      internet_max_bandwidth_out  = var.worker_bandwidth_out
+      # check the internal message on your account message center if needed
+      password                    = random_password.worker_pwd.result
+    }
   }
 
   event_persistence {
@@ -92,6 +98,7 @@ resource "tencentcloud_kubernetes_node_pool" "this" {
       system_disk_type   = try(auto_scaling_config.value.system_disk_type, "CLOUD_PREMIUM")
       system_disk_size   = try(auto_scaling_config.value.system_disk_size, 50)
       security_group_ids = try(auto_scaling_config.value.security_group_ids, null)
+      key_ids            = try(auto_scaling_config.value.key_ids, null)
 
       internet_charge_type       = try(auto_scaling_config.value.internet_charge_type, "TRAFFIC_POSTPAID_BY_HOUR")
       internet_max_bandwidth_out = try(auto_scaling_config.value.internet_max_bandwidth_out, 10)
@@ -144,4 +151,18 @@ resource "tencentcloud_kubernetes_serverless_node_pool" "this" {
   }
   security_group_ids = try(each.value.security_group_ids, null)
   labels             = try(each.value.labels, null)
+}
+
+resource "tencentcloud_kubernetes_cluster_endpoint" "endpoints" {
+  count = ! var.create_endpoint_with_cluster && (var.cluster_public_access || var.cluster_private_access) ? 1 : 0
+  cluster_id       = tencentcloud_kubernetes_cluster.cluster.id
+  cluster_internet = var.cluster_public_access
+  cluster_internet_domain = var.cluster_internet_domain
+  cluster_internet_security_group = var.cluster_public_access ? var.cluster_security_group_id : null
+  cluster_intranet = var.cluster_private_access
+  cluster_intranet_domain = var.cluster_intranet_domain
+  cluster_intranet_subnet_id = var.cluster_private_access ? var.cluster_private_access_subnet_id : null
+  depends_on = [
+    tencentcloud_kubernetes_node_pool.this, tencentcloud_kubernetes_serverless_node_pool.this
+  ]
 }

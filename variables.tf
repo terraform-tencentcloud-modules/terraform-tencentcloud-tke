@@ -35,7 +35,7 @@ variable "intranet_subnet_id" {
 variable "cluster_security_group_id" {
   type        = string
   default     = null
-  description = "Name to use on cluster security group"
+  description = ""
 }
 
 variable "node_security_group_id" {
@@ -83,8 +83,8 @@ variable "cluster_version" {
 
 variable "cluster_cidr" {
   type        = string
-  default     = null
-  description = "Cluster cidr, conflicts with its subnet. It should be set to null when network_type is VPC-CNI"
+  default     = "172.16.0.0/22"
+  description = "Cluster cidr, conflicts with its subnet. set to \"\" when network_type is VPC-CNI"
 }
 
 variable "cluster_os" {
@@ -93,10 +93,40 @@ variable "cluster_os" {
   description = "Cluster operation system image name."
 }
 
+variable "container_runtime" {
+  type        = string
+  default     = "containerd"
+  description = "Runtime type of the cluster, the available values include: 'docker' and 'containerd'.The Kubernetes v1.24 has removed dockershim, so please use containerd in v1.24 or higher.Default is 'docker'."
+}
+
+variable "cluster_level" {
+  type        = string
+  default     = "L5"
+  description = "Specify cluster level, valid for managed cluster, use data source tencentcloud_kubernetes_cluster_levels to query available levels. Available value examples L5, L20, L50, L100"
+}
+
+variable "cluster_max_pod_num" {
+  type = number
+  default = 256
+  description = "The maximum number of Pods per node in the cluster. Default is 256. The minimum value is 4. When its power unequal to 2, it will round upward to the closest power of 2"
+}
+
+variable "create_endpoint_with_cluster" {
+  type = bool
+  default = true
+  description = "If set to false, cluster_public_access and cluster_private_access will be disabled. The endpoints will be created with the setting of cluster_endpoints"
+}
+
 variable "cluster_public_access" {
   type        = bool
   default     = false
   description = "Specify whether to open cluster public access."
+}
+
+variable "cluster_internet_domain" {
+  type = string
+  default = null
+  description = "Domain name for cluster Kube-apiserver internet access. Be careful if you modify value of this parameter, the cluster_external_endpoint value may be changed automatically too"
 }
 
 variable "cluster_private_access" {
@@ -105,10 +135,22 @@ variable "cluster_private_access" {
   description = "Specify whether to open cluster private access."
 }
 
+variable "cluster_intranet_domain" {
+  type = string
+  default = null
+  description = "Domain name for cluster Kube-apiserver intranet access. Be careful if you modify value of this parameter, the pgw_endpoint value may be changed automatically too."
+}
+
 variable "cluster_private_access_subnet_id" {
   type        = string
   default     = null
   description = "Specify subnet_id for cluster private access."
+}
+
+variable "create_workers_with_cluster" {
+  type = bool
+  default = true
+  description = "If set to false, there won't be node created with cluster. All nodes will be created in node groups"
 }
 
 variable "worker_count" {

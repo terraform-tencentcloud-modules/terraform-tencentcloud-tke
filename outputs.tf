@@ -11,13 +11,13 @@ output "cluster_domain" {
 }
 
 output "cluster_endpoint" {
-  value       = tencentcloud_kubernetes_cluster.cluster.cluster_external_endpoint
-  description = "Cluster endpoint if cluster_public_access enabled"
+  value       = var.create_endpoint_with_cluster ? tencentcloud_kubernetes_cluster.cluster.cluster_external_endpoint : try(tencentcloud_kubernetes_cluster_endpoint.endpoints[0].cluster_external_endpoint, "")
+  description = "Cluster endpoint if cluster_public_access or endpoint enabled"
 }
 
 output "cluster_intranet_endpoint" {
-  value       = tencentcloud_kubernetes_cluster.cluster.pgw_endpoint
-  description = "Cluster endpoint if cluster_private_access enabled"
+  value       = var.create_endpoint_with_cluster ? tencentcloud_kubernetes_cluster.cluster.pgw_endpoint : try(tencentcloud_kubernetes_cluster_endpoint.endpoints[0].pgw_endpoint, "")
+  description = "Cluster endpoint if cluster_private_access or endpoint enabled"
 }
 
 locals {
