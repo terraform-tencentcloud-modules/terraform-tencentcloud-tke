@@ -83,8 +83,8 @@ variable "cluster_version" {
 
 variable "cluster_cidr" {
   type        = string
-  default     = "172.16.0.0/22"
-  description = "Cluster cidr, conflicts with its subnet."
+  default     = null
+  description = "Cluster cidr, conflicts with its subnet. It should be set to null when network_type is VPC-CNI"
 }
 
 variable "cluster_os" {
