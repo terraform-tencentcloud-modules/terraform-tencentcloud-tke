@@ -35,7 +35,7 @@ variable "intranet_subnet_id" {
 variable "cluster_security_group_id" {
   type        = string
   default     = null
-  description = ""
+  description = "Name to use on cluster security group"
 }
 
 variable "node_security_group_id" {
