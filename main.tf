@@ -41,6 +41,11 @@ resource "tencentcloud_kubernetes_cluster" "cluster" {
     }
   }
 
+  log_agent {
+    enabled          = var.enable_log_agent
+    kubelet_root_dir = var.kubelet_root_dir // optional
+  }
+
   event_persistence {
     enabled                    = var.enable_event_persistence
     delete_event_log_and_topic = var.event_log_topic_id == null

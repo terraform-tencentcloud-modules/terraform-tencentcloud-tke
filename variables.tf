@@ -170,6 +170,18 @@ variable "worker_bandwidth_out" {
   default = null
 }
 
+variable "enable_log_agent" {
+  type        = bool
+  default     = false
+  description = "Specify weather the Log agent enabled. "
+}
+
+variable "kubelet_root_dir" {
+  type        = string
+  default     = ""
+  description = "Kubelet root directory as the literal."
+}
+
 variable "enable_event_persistence" {
   type        = bool
   default     = false
