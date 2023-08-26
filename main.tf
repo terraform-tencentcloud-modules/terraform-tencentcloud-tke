@@ -102,7 +102,7 @@ resource "tencentcloud_kubernetes_node_pool" "this" {
       instance_type      = try(auto_scaling_config.value.instance_type, var.worker_instance_type, null)
       system_disk_type   = try(auto_scaling_config.value.system_disk_type, "CLOUD_PREMIUM")
       system_disk_size   = try(auto_scaling_config.value.system_disk_size, 50)
-      security_group_ids = try(auto_scaling_config.value.security_group_ids, null)
+      orderly_security_group_ids = try(auto_scaling_config.value.orderly_security_group_ids, null)
       key_ids            = try(auto_scaling_config.value.key_ids, null)
 
       internet_charge_type       = try(auto_scaling_config.value.internet_charge_type, "TRAFFIC_POSTPAID_BY_HOUR")
