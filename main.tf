@@ -119,6 +119,10 @@ resource "tencentcloud_kubernetes_node_pool" "this" {
         content {
           disk_type = try(data_disk.value.disk_type, "CLOUD_PREMIUM")
           disk_size = try(data_disk.value.disk_size, 50)
+          auto_format_and_mount = try(data_disk.value.auto_format_and_mount, false)
+          file_system = try(data_disk.value.file_system, "ext4")
+          delete_with_instance = try(data_disk.value.delete_with_instance, false)
+          mount_target = try(data_disk.value.mount_target, "/var/lib/docker")
         }
       }
     }
