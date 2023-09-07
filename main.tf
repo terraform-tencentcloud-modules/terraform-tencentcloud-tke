@@ -115,7 +115,7 @@ resource "tencentcloud_kubernetes_node_pool" "this" {
       host_name_style            = try(auto_scaling_config.value.host_name_style, null)
 
       dynamic "data_disk" {
-        for_each = try(auto_scaling_config.value.data_disk, null)
+        for_each = try(each.value.data_disk, [])
         content {
           disk_type = try(data_disk.value.disk_type, "CLOUD_PREMIUM")
           disk_size = try(data_disk.value.disk_size, 50)
@@ -139,6 +139,17 @@ resource "tencentcloud_kubernetes_node_pool" "this" {
   dynamic "node_config" {
     for_each = try(each.value.node_config, null)
     content {
+      dynamic "data_disk" {
+        for_each = try(each.value.data_disk, [])
+        content {
+          disk_type = try(data_disk.value.disk_type, "CLOUD_PREMIUM")
+          disk_size = try(data_disk.value.disk_size, 50)
+          auto_format_and_mount = try(data_disk.value.auto_format_and_mount, true)
+          file_system = try(data_disk.value.file_system, "xfs")
+          mount_target = try(each.value.docker_graph_path, "/var/lib/containerd")
+        }
+      }
+      docker_graph_path = try(each.value.docker_graph_path, "/var/lib/containerd")
       extra_args = try(node_config.value.extra_args, null)
     }
   }
