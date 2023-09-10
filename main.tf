@@ -79,9 +79,9 @@ resource "tencentcloud_kubernetes_addon_attachment" "this" {
   request_body = try(each.value.request_body, null)
 
 
-//  depends_on = [
-//    tencentcloud_kubernetes_node_pool.this
-//  ]
+  depends_on = [
+    tencentcloud_kubernetes_node_pool.this
+  ]
 }
 
 resource "tencentcloud_kubernetes_node_pool" "this" {
