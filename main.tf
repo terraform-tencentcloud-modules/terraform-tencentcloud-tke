@@ -63,10 +63,13 @@ resource "tencentcloud_kubernetes_cluster" "cluster" {
   tags = var.tags
 }
 
+locals {
+  cluster_addons = {for k, addon in var.cluster_addons: k => addon if try(addon.installed, true)}
+}
 
 resource "tencentcloud_kubernetes_addon_attachment" "this" {
   # Not supported on outposts
-  for_each = var.cluster_addons
+  for_each = local.cluster_addons
 
   cluster_id = tencentcloud_kubernetes_cluster.cluster.id
   name       = try(each.value.name, each.key)
