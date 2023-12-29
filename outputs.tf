@@ -46,11 +46,11 @@ output "cluster_ca_certificate" {
 }
 
 output "client_key" {
-  value       = local.kube_config.users[0].user["client-key-data"]
+  value       = try(local.kube_config.users[0].user["client-key-data"], "")
   description = "Base64 encoded cluster's client pem key."
 }
 
 output "client_certificate" {
-  value       = local.kube_config.users[0].user["client-certificate-data"]
+  value       = try(local.kube_config.users[0].user["client-certificate-data"], "")
   description = "Base64 encoded cluster's client pem certificate."
 }
