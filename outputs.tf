@@ -22,7 +22,7 @@ output "cluster_intranet_endpoint" {
 
 locals {
   kube_config_raw = tencentcloud_kubernetes_cluster.cluster.kube_config
-  kube_config     = yamldecode(local.kube_config_raw)
+  kube_config     = try(yamldecode(local.kube_config_raw), "")
 }
 
 output "kube_config_raw" {
