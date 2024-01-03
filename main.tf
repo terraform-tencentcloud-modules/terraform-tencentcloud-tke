@@ -61,6 +61,13 @@ resource "tencentcloud_kubernetes_cluster" "cluster" {
   }
 
   tags = var.tags
+
+  lifecycle {
+    ignore_changes = [ // leave control to tencentcloud_kubernetes_cluster_endpoint
+      cluster_intranet,
+      cluster_intranet_subnet_id
+    ]
+  }
 }
 
 locals {
