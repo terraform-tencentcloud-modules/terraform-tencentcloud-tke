@@ -230,6 +230,12 @@ variable "enhanced_monitor_service" {
   description = "To specify whether to enable cloud monitor service."
 }
 
+variable "deletion_protection" {
+  type = bool
+  default = false
+  description = "Indicates whether cluster deletion protection is enabled. Default is false."
+}
+
 ################################################################################
 # TKE Addons
 ################################################################################

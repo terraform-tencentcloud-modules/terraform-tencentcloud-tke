@@ -24,6 +24,7 @@ resource "tencentcloud_kubernetes_cluster" "cluster" {
   eni_subnet_ids                  = var.eni_subnet_ids
   claim_expired_seconds           = var.claim_expired_seconds
   cluster_max_service_num         = var.cluster_max_service_num
+  deletion_protection = var.deletion_protection
 
   dynamic "worker_config" {
     for_each = var.create_workers_with_cluster == true ? [1] : []
