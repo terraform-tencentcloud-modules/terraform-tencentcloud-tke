@@ -66,7 +66,9 @@ resource "tencentcloud_kubernetes_cluster" "cluster" {
   lifecycle {
     ignore_changes = [ // leave control to tencentcloud_kubernetes_cluster_endpoint
       cluster_intranet,
-      cluster_intranet_subnet_id
+      cluster_intranet_subnet_id,
+      kube_config, // computed
+      kube_config_intranet // computed
     ]
   }
 }
