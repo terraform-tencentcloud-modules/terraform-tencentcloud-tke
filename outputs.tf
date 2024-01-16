@@ -11,18 +11,18 @@ output "cluster_domain" {
 }
 
 output "cluster_endpoint" {
-  value       = tencentcloud_kubernetes_cluster.cluster.cluster_external_endpoint
-  description = "Cluster endpoint if cluster_public_access enabled"
+  value       = var.create_endpoint_with_cluster ? tencentcloud_kubernetes_cluster.cluster.cluster_external_endpoint : try(tencentcloud_kubernetes_cluster_endpoint.endpoints[0].cluster_external_endpoint, "")
+  description = "Cluster endpoint if cluster_public_access or endpoint enabled"
 }
 
 output "cluster_intranet_endpoint" {
-  value       = tencentcloud_kubernetes_cluster.cluster.pgw_endpoint
-  description = "Cluster endpoint if cluster_private_access enabled"
+  value       = var.create_endpoint_with_cluster ? tencentcloud_kubernetes_cluster.cluster.pgw_endpoint : try(tencentcloud_kubernetes_cluster_endpoint.endpoints[0].pgw_endpoint, "")
+  description = "Cluster endpoint if cluster_private_access or endpoint enabled"
 }
 
 locals {
   kube_config_raw = tencentcloud_kubernetes_cluster.cluster.kube_config
-  kube_config     = yamldecode(local.kube_config_raw)
+  kube_config     = try(yamldecode(local.kube_config_raw), "")
 }
 
 output "kube_config_raw" {
@@ -46,11 +46,11 @@ output "cluster_ca_certificate" {
 }
 
 output "client_key" {
-  value       = local.kube_config.users[0].user["client-key-data"]
+  value       = try(local.kube_config.users[0].user["client-key-data"], "")
   description = "Base64 encoded cluster's client pem key."
 }
 
 output "client_certificate" {
-  value       = local.kube_config.users[0].user["client-certificate-data"]
+  value       = try(local.kube_config.users[0].user["client-certificate-data"], "")
   description = "Base64 encoded cluster's client pem certificate."
 }
