@@ -265,3 +265,17 @@ variable "self_managed_serverless_node_groups" {
   type        = any
   default     = {}
 }
+
+####
+variable "private_access_subnet_by_key" {
+  type = bool
+  default = false
+}
+variable "private_access_subnet_id_map" {
+  type = map(string)
+  default = {}
+}
+variable "private_access_subnet_key" {
+  type = string
+  default = ""
+}

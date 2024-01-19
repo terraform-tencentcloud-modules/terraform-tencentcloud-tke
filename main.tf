@@ -17,7 +17,7 @@ resource "tencentcloud_kubernetes_cluster" "cluster" {
   cluster_internet                = var.create_endpoint_with_cluster ? var.cluster_public_access : false
   cluster_internet_security_group = var.create_endpoint_with_cluster ? (var.cluster_public_access ? var.cluster_security_group_id : null) : null
   cluster_intranet                = var.create_endpoint_with_cluster ? var.cluster_private_access : false
-  cluster_intranet_subnet_id      = var.create_endpoint_with_cluster ? (var.cluster_private_access ? var.cluster_private_access_subnet_id : null) : null
+  cluster_intranet_subnet_id      = var.create_endpoint_with_cluster ? (var.cluster_private_access ? local.cluster_private_access_subnet_id : null) : null
   vpc_id                          = var.vpc_id
   service_cidr                    = var.cluster_service_cidr
   network_type                    = var.network_type
@@ -77,6 +77,7 @@ resource "tencentcloud_kubernetes_cluster" "cluster" {
 
 locals {
   cluster_addons = {for k, addon in var.cluster_addons: k => addon if try(addon.installed, true)}
+  cluster_private_access_subnet_id = var.private_access_subnet_by_key ? var.private_access_subnet_id_map[var.private_access_subnet_key]: var.cluster_private_access_subnet_id
 }
 
 resource "tencentcloud_kubernetes_addon_attachment" "this" {
@@ -193,7 +194,7 @@ resource "tencentcloud_kubernetes_cluster_endpoint" "endpoints" {
   cluster_internet_security_group = var.cluster_public_access ? var.cluster_security_group_id : null
   cluster_intranet = var.cluster_private_access
   cluster_intranet_domain = var.cluster_intranet_domain
-  cluster_intranet_subnet_id = var.cluster_private_access ? var.cluster_private_access_subnet_id : null
+  cluster_intranet_subnet_id = var.cluster_private_access ? local.cluster_private_access_subnet_id : null
   depends_on = [
     tencentcloud_kubernetes_node_pool.this, tencentcloud_kubernetes_serverless_node_pool.this
   ]
