@@ -169,6 +169,11 @@ resource "tencentcloud_kubernetes_node_pool" "this" {
       extra_args = try(node_config.value.extra_args, null)
     }
   }
+  lifecycle {
+    ignore_changes = [
+      desired_capacity  // desired_capacity should be controlled by auto scaling
+    ]
+  }
 }
 
 resource "tencentcloud_kubernetes_serverless_node_pool" "this" {
