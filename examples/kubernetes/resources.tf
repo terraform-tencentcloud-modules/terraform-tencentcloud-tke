@@ -5,6 +5,7 @@ resource "kubernetes_namespace" "test" {
   }
 }
 
+# Define the kubernetes resource, then deploy two pods into the kubernetes cluster
 resource "kubernetes_deployment" "test" {
   metadata {
     name      = "nginx"
@@ -17,12 +18,14 @@ resource "kubernetes_deployment" "test" {
         app = "MyTestApp"
       }
     }
+    # Set nginx container and corresponding mirror
     template {
       metadata {
         labels = {
           app = "MyTestApp"
         }
       }
+      # use Nginx mirror
       spec {
         container {
           image = "nginx"
@@ -36,11 +39,13 @@ resource "kubernetes_deployment" "test" {
   }
 }
 
+# Create a kubernetes service which named nginx
 resource "kubernetes_service" "test" {
   metadata {
     name      = "nginx"
     namespace = kubernetes_namespace.test.metadata.0.name
   }
+  # Mapping NodePort type services to nginx Pods
   spec {
     selector = {
       app = kubernetes_deployment.test.spec.0.template.0.metadata.0.labels.app
@@ -54,6 +59,7 @@ resource "kubernetes_service" "test" {
   }
 }
 
+# Define a k8s Ingress resource to route external traffic to the Nginx service in the Ingress that named "test-ingress"
 resource "kubernetes_ingress_v1" "test" {
   metadata {
     name      = "test-ingress"
@@ -68,7 +74,6 @@ resource "kubernetes_ingress_v1" "test" {
       "kubernetes.io/ingress.qcloud-loadbalance-id" = tencentcloud_clb_instance.ingress-lb.id
       "kubernetes.io/ingress.rule-mix"              = "false"
     }
-    #    selfLink = "/apis/networking.k8s.io/v1/namespaces/nginx/ingresses/test-ingress"
   }
   spec {
     rule {
@@ -87,4 +92,54 @@ resource "kubernetes_ingress_v1" "test" {
       }
     }
   }
+}
+
+# deine PVC and PV
+resource "kubernetes_persistent_volume_claim" "test" {
+  metadata {
+    name = "example-pv-claim"
+    namespace = kubernetes_namespace.test.metadata.0.name
+  }
+  spec {
+    storage_class_name = "my-storage"
+    access_modes = ["ReadWriteMany"]
+    resources {
+      requests = {
+        storage = "5Gi"
+      }
+    }
+    volume_name = "${kubernetes_persistent_volume.test.metadata.0.name}"
+  }
+}
+
+resource "kubernetes_persistent_volume" "test" {
+  metadata {
+    name = "example-pv"
+  }
+  spec {
+    capacity = {
+      storage = "10Gi"
+    }
+    storage_class_name = "my-storage"
+    access_modes = ["ReadWriteMany"]
+    persistent_volume_source {
+      # set the cbs
+      csi {
+        driver = "com.tencent.cloud.csi.cbs"
+        volume_handle = tencentcloud_cbs_storage.stroage.id
+        fs_type = "ext4"
+      }
+    }
+  }
+}
+
+# define CBS resource
+resource "tencentcloud_cbs_storage" "stroage" {
+  storage_name      = "example-cbs"
+  storage_type      = "CLOUD_SSD"
+  storage_size      = 100
+  availability_zone = var.available_zone
+  project_id        = 0
+  encrypt           = false
+
 }

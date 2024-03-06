@@ -4,10 +4,10 @@ locals {
 }
 
 resource "tencentcloud_clb_instance" "ingress-lb" {
-  address_ip_version = "ipv4"
-  clb_name           = "example-lb"
-  #  internet_bandwidth_max_out   = 5
-  #  internet_charge_type         = "BANDWIDTH_POSTPAID_BY_HOUR"
+  address_ip_version           = "ipv4"
+  clb_name                     = "example-lb"
+  internet_bandwidth_max_out   = 1
+  internet_charge_type         = "BANDWIDTH_POSTPAID_BY_HOUR"
   load_balancer_pass_to_target = true
   network_type                 = "OPEN"
   security_groups              = [local.lb_sg]
