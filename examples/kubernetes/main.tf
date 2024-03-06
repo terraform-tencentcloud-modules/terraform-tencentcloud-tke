@@ -49,42 +49,45 @@ resource "tencentcloud_security_group_lite_rule" "this" {
 module "tencentcloud_tke" {
   source                   = "../../"
   available_zone           = var.available_zone # Available zone must belongs to the region.
-  vpc_id                   = tencentcloud_vpc.this.id
-  intranet_subnet_id       = tencentcloud_subnet.intranet.id
+  create_cam_strategy      = false
   enhanced_monitor_service = true
 
-  cluster_public_access     = true
-  cluster_security_group_id = tencentcloud_security_group.this.id
 
-  cluster_private_access           = true
+  create_endpoint_with_cluster     = false # enable network access by endpoint resource
+  create_workers_with_cluster      = false # create nodes by node pool resource
+  cluster_public_access            = true  # enable public access
+  cluster_private_access           = true  # eanble private access
+  cluster_security_group_id        = tencentcloud_security_group.this.id
+  node_security_group_id           = tencentcloud_security_group.this.id
   cluster_private_access_subnet_id = tencentcloud_subnet.intranet.id
+  vpc_id                           = tencentcloud_vpc.this.id
+  intranet_subnet_id               = tencentcloud_subnet.intranet.id
 
-  node_security_group_id = tencentcloud_security_group.this.id
 
-  enable_event_persistence = true
   enable_cluster_audit_log = true
+  worker_bandwidth_out     = 100
 
-  worker_bandwidth_out = 100
 
   tags = {
     module = "tke"
   }
 
+  # config standard node pool
   self_managed_node_groups = {
     test = {
-      max_size                 = 6
+      max_size                 = 4
       min_size                 = 1
       subnet_ids               = [tencentcloud_subnet.intranet.id]
       retry_policy             = "INCREMENTAL_INTERVALS"
-      desired_capacity         = 4
+      desired_capacity         = 2
       enable_auto_scale        = true
       multi_zone_subnet_policy = "EQUALITY"
 
       auto_scaling_config = [{
-        instance_type      = "S5.MEDIUM2"
-        system_disk_type   = "CLOUD_PREMIUM"
-        system_disk_size   = 50
-        security_group_ids = [tencentcloud_security_group.this.id]
+        instance_type              = "S5.MEDIUM2"
+        system_disk_type           = "CLOUD_PREMIUM"
+        system_disk_size           = 50
+        orderly_security_group_ids = [tencentcloud_security_group.this.id]
 
         data_disk = [{
           disk_type = "CLOUD_PREMIUM"
@@ -122,25 +125,26 @@ module "tencentcloud_tke" {
     }
   }
 
-  self_managed_serverless_node_groups = {
-    test = {
-      name = "example_serverless_np"
-      serverless_nodes = [{
-        display_name = "serverless_node1"
-        subnet_id    = tencentcloud_subnet.intranet.id
-        },
-        {
-          display_name = "serverless_node2"
-          subnet_id    = tencentcloud_subnet.intranet.id
-        },
-      ]
-      security_group_ids = [tencentcloud_security_group.this.id]
-      labels = {
-        "example1" : "test1",
-        "example2" : "test2",
-      }
-    }
-  }
+  # config serverless node pool
+  # self_managed_serverless_node_groups = {
+  #   test = {
+  #     name = "example_serverless_np"
+  #     serverless_nodes = [{
+  #       display_name = "serverless_node1"
+  #       subnet_id    = tencentcloud_subnet.intranet.id
+  #       },
+  #       {
+  #         display_name = "serverless_node2"
+  #         subnet_id    = tencentcloud_subnet.intranet.id
+  #       },
+  #     ]
+  #     security_group_ids = [tencentcloud_security_group.this.id]
+  #     labels = {
+  #       "example1" : "test1",
+  #       "example2" : "test2",
+  #     }
+  #   }
+  # }
 
 }
 
