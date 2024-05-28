@@ -114,7 +114,7 @@ resource "tencentcloud_kubernetes_node_pool" "this" {
   delete_keep_instance     = try(each.value.delete_keep_instance, false)
 
   dynamic "auto_scaling_config" {
-    for_each = try(each.value.auto_scaling_config, null)
+    for_each = try(each.value.auto_scaling_config, {})
     content {
       instance_type      = try(auto_scaling_config.value.instance_type, var.worker_instance_type, null)
       system_disk_type   = try(auto_scaling_config.value.system_disk_type, "CLOUD_PREMIUM")
@@ -145,7 +145,7 @@ resource "tencentcloud_kubernetes_node_pool" "this" {
   labels = try(each.value.labels, null)
 
   dynamic "taints" {
-    for_each = try(each.value.taints, null)
+    for_each = try(each.value.taints, {})
     content {
       key    = try(taints.value.key, null)
       value  = try(taints.value.value, null)
@@ -154,7 +154,7 @@ resource "tencentcloud_kubernetes_node_pool" "this" {
   }
 
   dynamic "node_config" {
-    for_each = try(each.value.node_config, null)
+    for_each = try(each.value.node_config, {})
     content {
       dynamic "data_disk" {
         for_each = try(each.value.data_disk, [])
