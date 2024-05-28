@@ -1,3 +1,13 @@
+variable "create_cluster" {
+  type = bool
+  default = true
+  description = "create cluster or not. If not, must specify a cluster id"
+}
+variable "cluster_id" {
+  type = string
+  default = ""
+  description = "existing cluster id, used when create_cluster is false"
+}
 # Basic
 variable "available_zone" {
   type        = string

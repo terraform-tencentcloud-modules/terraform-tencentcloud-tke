@@ -1,7 +1,7 @@
 
 # TKEs
 output "cluster_id" {
-  value       = tencentcloud_kubernetes_cluster.cluster.id
+  value       = local.cluster_id
   description = "TKE cluster id."
 }
 
