@@ -6,22 +6,22 @@ output "cluster_id" {
 }
 
 output "cluster_domain" {
-  value       = tencentcloud_kubernetes_cluster.cluster.domain
+  value       = concat(tencentcloud_kubernetes_cluster.cluster.*.domain, [""])[0]
   description = "Cluster domain."
 }
 
 output "cluster_endpoint" {
-  value       = var.create_endpoint_with_cluster ? tencentcloud_kubernetes_cluster.cluster.cluster_external_endpoint : try(tencentcloud_kubernetes_cluster_endpoint.endpoints[0].cluster_external_endpoint, "")
+  value       = var.create_endpoint_with_cluster ? concat(tencentcloud_kubernetes_cluster.cluster.*.cluster_external_endpoint, [""])[0] : try(tencentcloud_kubernetes_cluster_endpoint.endpoints[0].cluster_external_endpoint, "")
   description = "Cluster endpoint if cluster_public_access or endpoint enabled"
 }
 
 output "cluster_intranet_endpoint" {
-  value       = var.create_endpoint_with_cluster ? tencentcloud_kubernetes_cluster.cluster.pgw_endpoint : try(tencentcloud_kubernetes_cluster_endpoint.endpoints[0].pgw_endpoint, "")
+  value       = var.create_endpoint_with_cluster ? concat(tencentcloud_kubernetes_cluster.cluster.*.pgw_endpoint, [""])[0] : try(tencentcloud_kubernetes_cluster_endpoint.endpoints[0].pgw_endpoint, "")
   description = "Cluster endpoint if cluster_private_access or endpoint enabled"
 }
 
 locals {
-  kube_config_raw = tencentcloud_kubernetes_cluster.cluster.kube_config
+  kube_config_raw = concat(tencentcloud_kubernetes_cluster.cluster.*.kube_config, [""])[0]
   kube_config     = try(yamldecode(local.kube_config_raw), "")
 }
 
@@ -36,12 +36,12 @@ output "kube_config" {
 }
 
 output "intranet_kube_config" {
-  value       = tencentcloud_kubernetes_cluster.cluster.kube_config_intranet
+  value       = concat(tencentcloud_kubernetes_cluster.cluster.*.kube_config_intranet, [""])[0]
   description = "Cluster's kube config of private access."
 }
 
 output "cluster_ca_certificate" {
-  value       = tencentcloud_kubernetes_cluster.cluster.certification_authority
+  value       = concat(tencentcloud_kubernetes_cluster.cluster.*.certification_authority, [""])[0]
   description = "Cluster's certification authority."
 }
 
