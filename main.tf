@@ -103,10 +103,10 @@ resource "tencentcloud_kubernetes_node_pool" "this" {
   min_size                 = try(each.value.min_size, each.value.max_size, 1)
   vpc_id                   = var.vpc_id
   subnet_ids               = try(each.value.subnet_ids, [var.intranet_subnet_id])
-  retry_policy             = try(each.value.retry_policy, null)
+  retry_policy             = try(each.value.retry_policy, "IMMEDIATE_RETRY")
   desired_capacity         = try(each.value.desired_capacity, null)
-  enable_auto_scale        = try(each.value.enable_auto_scale, null)
-  multi_zone_subnet_policy = try(each.value.multi_zone_subnet_policy, null)
+  enable_auto_scale        = try(each.value.enable_auto_scale, true)
+  multi_zone_subnet_policy = try(each.value.multi_zone_subnet_policy, "EQUALITY")
   node_os                  = try(each.value.node_os, var.cluster_os)
   delete_keep_instance     = try(each.value.delete_keep_instance, false)
 
@@ -119,8 +119,8 @@ resource "tencentcloud_kubernetes_node_pool" "this" {
       orderly_security_group_ids = try(auto_scaling_config.value.orderly_security_group_ids, null)
       key_ids            = try(auto_scaling_config.value.key_ids, null)
 
-      internet_charge_type       = try(auto_scaling_config.value.internet_charge_type, "TRAFFIC_POSTPAID_BY_HOUR")
-      internet_max_bandwidth_out = try(auto_scaling_config.value.internet_max_bandwidth_out, 10)
+      internet_charge_type       = try(auto_scaling_config.value.internet_charge_type, null) #"TRAFFIC_POSTPAID_BY_HOUR")
+      internet_max_bandwidth_out = try(auto_scaling_config.value.internet_max_bandwidth_out, null) # 10)
       public_ip_assigned         = try(auto_scaling_config.value.public_ip_assigned, false)
       password                   = try(auto_scaling_config.value.password, random_password.worker_pwd.result, null)
       enhanced_security_service  = try(auto_scaling_config.value.enhanced_security_service, true)
@@ -151,7 +151,7 @@ resource "tencentcloud_kubernetes_node_pool" "this" {
   }
 
   dynamic "node_config" {
-    for_each = try(each.value.node_config, {})
+    for_each = try(each.value.node_config, null)
     content {
       dynamic "data_disk" {
         for_each = try(each.value.data_disk, [])
