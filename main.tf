@@ -7,6 +7,7 @@ resource "random_password" "worker_pwd" {
 }
 
 resource "tencentcloud_kubernetes_cluster" "cluster" {
+  count = var.create_cluster ? 1 : 0
   cluster_name                    = var.cluster_name
   cluster_version                 = var.cluster_version
   cluster_cidr                    = var.cluster_cidr
@@ -79,13 +80,14 @@ resource "tencentcloud_kubernetes_cluster" "cluster" {
 locals {
   cluster_addons = {for k, addon in var.cluster_addons: k => addon if try(addon.installed, true)}
   cluster_private_access_subnet_id = var.private_access_subnet_by_key ? var.private_access_subnet_id_map[var.private_access_subnet_key]: var.cluster_private_access_subnet_id
+  cluster_id = var.create_cluster ? concat(tencentcloud_kubernetes_cluster.cluster.*.id, [""])[0] : var.cluster_id
 }
 
 resource "tencentcloud_kubernetes_addon_attachment" "this" {
   # Not supported on outposts
   for_each = local.cluster_addons
 
-  cluster_id = tencentcloud_kubernetes_cluster.cluster.id
+  cluster_id = local.cluster_id
   name       = try(each.value.name, each.key)
 
   version      = try(each.value.version, null)
@@ -101,7 +103,7 @@ resource "tencentcloud_kubernetes_addon_attachment" "this" {
 resource "tencentcloud_kubernetes_node_pool" "this" {
   for_each                 = var.self_managed_node_groups
   name                     = try(each.value.name, each.key)
-  cluster_id               = tencentcloud_kubernetes_cluster.cluster.id
+  cluster_id               = local.cluster_id
   max_size                 = try(each.value.max_size, each.value.min_size, 1)
   min_size                 = try(each.value.min_size, each.value.max_size, 1)
   vpc_id                   = var.vpc_id
@@ -180,7 +182,7 @@ resource "tencentcloud_kubernetes_node_pool" "this" {
 resource "tencentcloud_kubernetes_serverless_node_pool" "this" {
   for_each   = var.self_managed_serverless_node_groups
   name       = try(each.value.name, each.key)
-  cluster_id = tencentcloud_kubernetes_cluster.cluster.id
+  cluster_id = local.cluster_id
   dynamic "serverless_nodes" {
     for_each = try(each.value.serverless_nodes, null)
     content {
@@ -194,7 +196,7 @@ resource "tencentcloud_kubernetes_serverless_node_pool" "this" {
 
 resource "tencentcloud_kubernetes_cluster_endpoint" "endpoints" {
   count = ! var.create_endpoint_with_cluster && (var.cluster_public_access || var.cluster_private_access) ? 1 : 0
-  cluster_id       = tencentcloud_kubernetes_cluster.cluster.id
+  cluster_id       = local.cluster_id
   cluster_internet = var.cluster_public_access
   cluster_internet_domain = var.cluster_internet_domain
   cluster_internet_security_group = var.cluster_public_access ? var.cluster_security_group_id : null
