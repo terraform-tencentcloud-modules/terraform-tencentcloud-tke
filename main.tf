@@ -38,6 +38,7 @@ resource "tencentcloud_kubernetes_cluster" "cluster" {
       enhanced_monitor_service    = var.enhanced_monitor_service
       public_ip_assigned          = true
       internet_max_bandwidth_out  = var.worker_bandwidth_out
+      img_id = var.worker_img_id
       # check the internal message on your account message center if needed
       password                    = random_password.worker_pwd.result
     }
