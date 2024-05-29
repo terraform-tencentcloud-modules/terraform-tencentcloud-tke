@@ -180,11 +180,6 @@ variable "worker_bandwidth_out" {
   default = null
 }
 
-variable "worker_img_id" {
-  default = "img-eb30mz89" # TencentOS Server 3.1 (TK4)
-  type = string
-}
-
 variable "enable_log_agent" {
   type        = bool
   default     = false
