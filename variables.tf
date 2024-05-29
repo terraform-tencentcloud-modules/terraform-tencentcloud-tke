@@ -159,7 +159,7 @@ variable "cluster_private_access_subnet_id" {
 
 variable "create_workers_with_cluster" {
   type = bool
-  default = true
+  default = false
   description = "If set to false, there won't be node created with cluster. All nodes will be created in node groups"
 }
 
