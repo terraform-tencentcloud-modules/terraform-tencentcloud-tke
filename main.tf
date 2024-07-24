@@ -145,6 +145,7 @@ resource "tencentcloud_kubernetes_node_pool" "this" {
   }
 
   labels = try(each.value.labels, null)
+  tag = try(each.value.tags, {})
 
   dynamic "taints" {
     for_each = try(each.value.taints, {})
