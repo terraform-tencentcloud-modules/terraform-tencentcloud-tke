@@ -78,7 +78,7 @@ resource "tencentcloud_kubernetes_cluster" "cluster" {
 
 locals {
   cluster_addons = {for k, addon in var.cluster_addons: k => addon if try(addon.installed, true)}
-  cluster_private_access_subnet_id = var.private_access_subnet_by_key ? var.private_access_subnet_id_map[var.private_access_subnet_key]: var.cluster_private_access_subnet_id
+  cluster_private_access_subnet_id = var.cluster_private_access_subnet_id
   cluster_id = var.create_cluster ? concat(tencentcloud_kubernetes_cluster.cluster.*.id, [""])[0] : var.cluster_id
 }
 
