@@ -1,3 +1,13 @@
+variable "create_cluster" {
+  type = bool
+  default = true
+  description = "create cluster or not. If not, must specify a cluster id"
+}
+variable "cluster_id" {
+  type = string
+  default = ""
+  description = "existing cluster id, used when create_cluster is false"
+}
 # Basic
 variable "available_zone" {
   type        = string
@@ -149,7 +159,7 @@ variable "cluster_private_access_subnet_id" {
 
 variable "create_workers_with_cluster" {
   type = bool
-  default = true
+  default = false
   description = "If set to false, there won't be node created with cluster. All nodes will be created in node groups"
 }
 
