@@ -77,14 +77,17 @@ resource "tencentcloud_kubernetes_cluster" "cluster" {
 }
 
 locals {
-  cluster_addons = {for k, addon in var.cluster_addons: k => addon if try(addon.installed, true)}
+  // to enable new style addons, set addon.legacy to `false`, see `examples/new-addons`
+  cluster_addons = {for k, addon in var.cluster_addons: k => addon if try(addon.installed, true) && ! try(addon.legacy, true) }
+  cluster_legacy_addons = {for k, addon in var.cluster_addons: k => addon if try(addon.installed, true) && try(addon.legacy, true)}
+
   cluster_private_access_subnet_id = var.cluster_private_access_subnet_id
   cluster_id = var.create_cluster ? concat(tencentcloud_kubernetes_cluster.cluster.*.id, [""])[0] : var.cluster_id
 }
 
 resource "tencentcloud_kubernetes_addon_attachment" "this" {
-  # Not supported on outposts
-  for_each = local.cluster_addons
+  # This resource will be deprecated, instead by `tencentcloud_kubernetes_addon`
+  for_each = local.cluster_legacy_addons
 
   cluster_id = local.cluster_id
   name       = try(each.value.name, each.key)
@@ -93,6 +96,19 @@ resource "tencentcloud_kubernetes_addon_attachment" "this" {
   values       = try(each.value.values, null)
   request_body = try(each.value.request_body, null)
 
+
+  depends_on = [
+    tencentcloud_kubernetes_node_pool.this
+  ]
+}
+
+resource "tencentcloud_kubernetes_addon" "addons" {
+  for_each = local.cluster_addons
+
+  cluster_id = local.cluster_id
+  addon_name       = try(each.value.addon_name, each.key)
+  addon_version      = try(each.value.addon_version, null)
+  raw_values       = try(each.value.raw_values, "") == "" ? "" : jsonencode(each.value.raw_values)
 
   depends_on = [
     tencentcloud_kubernetes_node_pool.this
