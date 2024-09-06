@@ -1,11 +1,11 @@
 variable "create_cluster" {
-  type = bool
-  default = true
+  type        = bool
+  default     = true
   description = "create cluster or not. If not, must specify a cluster id"
 }
 variable "cluster_id" {
-  type = string
-  default = ""
+  type        = string
+  default     = ""
   description = "existing cluster id, used when create_cluster is false"
 }
 # Basic
@@ -116,14 +116,14 @@ variable "cluster_level" {
 }
 
 variable "cluster_max_pod_num" {
-  type = number
-  default = 256
+  type        = number
+  default     = 256
   description = "The maximum number of Pods per node in the cluster. Default is 256. The minimum value is 4. When its power unequal to 2, it will round upward to the closest power of 2"
 }
 
 variable "create_endpoint_with_cluster" {
-  type = bool
-  default = true
+  type        = bool
+  default     = true
   description = "If set to false, cluster_public_access and cluster_private_access will be disabled. The endpoints will be created with the setting of cluster_endpoints"
 }
 
@@ -134,8 +134,8 @@ variable "cluster_public_access" {
 }
 
 variable "cluster_internet_domain" {
-  type = string
-  default = null
+  type        = string
+  default     = null
   description = "Domain name for cluster Kube-apiserver internet access. Be careful if you modify value of this parameter, the cluster_external_endpoint value may be changed automatically too"
 }
 
@@ -146,8 +146,8 @@ variable "cluster_private_access" {
 }
 
 variable "cluster_intranet_domain" {
-  type = string
-  default = null
+  type        = string
+  default     = null
   description = "Domain name for cluster Kube-apiserver intranet access. Be careful if you modify value of this parameter, the pgw_endpoint value may be changed automatically too."
 }
 
@@ -158,8 +158,8 @@ variable "cluster_private_access_subnet_id" {
 }
 
 variable "create_workers_with_cluster" {
-  type = bool
-  default = false
+  type        = bool
+  default     = false
   description = "If set to false, there won't be node created with cluster. All nodes will be created in node groups"
 }
 
@@ -241,8 +241,8 @@ variable "enhanced_monitor_service" {
 }
 
 variable "deletion_protection" {
-  type = bool
-  default = false
+  type        = bool
+  default     = false
   description = "Indicates whether cluster deletion protection is enabled. Default is false."
 }
 

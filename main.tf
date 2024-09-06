@@ -7,7 +7,7 @@ resource "random_password" "worker_pwd" {
 }
 
 resource "tencentcloud_kubernetes_cluster" "cluster" {
-  count = var.create_cluster ? 1 : 0
+  count                           = var.create_cluster ? 1 : 0
   cluster_name                    = var.cluster_name
   cluster_version                 = var.cluster_version
   cluster_cidr                    = var.cluster_cidr
@@ -25,21 +25,21 @@ resource "tencentcloud_kubernetes_cluster" "cluster" {
   eni_subnet_ids                  = var.eni_subnet_ids
   claim_expired_seconds           = var.claim_expired_seconds
   cluster_max_service_num         = var.cluster_max_service_num
-  deletion_protection = var.deletion_protection
+  deletion_protection             = var.deletion_protection
 
   dynamic "worker_config" {
     for_each = var.create_workers_with_cluster == true ? [1] : []
     content {
-      availability_zone           = var.available_zone
-      count                       = var.worker_count
-      instance_type               = var.worker_instance_type
-      subnet_id                   = var.intranet_subnet_id
-      security_group_ids          = [var.node_security_group_id]
-      enhanced_monitor_service    = var.enhanced_monitor_service
-      public_ip_assigned          = true
-      internet_max_bandwidth_out  = var.worker_bandwidth_out
+      availability_zone          = var.available_zone
+      count                      = var.worker_count
+      instance_type              = var.worker_instance_type
+      subnet_id                  = var.intranet_subnet_id
+      security_group_ids         = [var.node_security_group_id]
+      enhanced_monitor_service   = var.enhanced_monitor_service
+      public_ip_assigned         = true
+      internet_max_bandwidth_out = var.worker_bandwidth_out
       # check the internal message on your account message center if needed
-      password                    = random_password.worker_pwd.result
+      password = random_password.worker_pwd.result
     }
   }
 
@@ -70,7 +70,7 @@ resource "tencentcloud_kubernetes_cluster" "cluster" {
       cluster_intranet_subnet_id,
       cluster_internet,
       cluster_internet_security_group,
-      kube_config, // computed
+      kube_config,         // computed
       kube_config_intranet // computed
     ]
   }
@@ -78,11 +78,11 @@ resource "tencentcloud_kubernetes_cluster" "cluster" {
 
 locals {
   // to enable new style addons, set addon.legacy to `false`, see `examples/new-addons`
-  cluster_addons = {for k, addon in var.cluster_addons: k => addon if try(addon.installed, true) && ! try(addon.legacy, true) }
-  cluster_legacy_addons = {for k, addon in var.cluster_addons: k => addon if try(addon.installed, true) && try(addon.legacy, true)}
+  cluster_addons        = { for k, addon in var.cluster_addons : k => addon if try(addon.installed, true) && !try(addon.legacy, true) }
+  cluster_legacy_addons = { for k, addon in var.cluster_addons : k => addon if try(addon.installed, true) && try(addon.legacy, true) }
 
   cluster_private_access_subnet_id = var.cluster_private_access_subnet_id
-  cluster_id = var.create_cluster ? concat(tencentcloud_kubernetes_cluster.cluster.*.id, [""])[0] : var.cluster_id
+  cluster_id                       = var.create_cluster ? concat(tencentcloud_kubernetes_cluster.cluster.*.id, [""])[0] : var.cluster_id
 }
 
 resource "tencentcloud_kubernetes_addon_attachment" "this" {
@@ -105,10 +105,10 @@ resource "tencentcloud_kubernetes_addon_attachment" "this" {
 resource "tencentcloud_kubernetes_addon" "addons" {
   for_each = local.cluster_addons
 
-  cluster_id = local.cluster_id
-  addon_name       = try(each.value.addon_name, each.key)
-  addon_version      = try(each.value.addon_version, null)
-  raw_values       = try(each.value.raw_values, "") == "" ? "" : jsonencode(each.value.raw_values)
+  cluster_id    = local.cluster_id
+  addon_name    = try(each.value.addon_name, each.key)
+  addon_version = try(each.value.addon_version, null)
+  raw_values    = try(each.value.raw_values, "") == "" ? "" : jsonencode(each.value.raw_values)
 
   depends_on = [
     tencentcloud_kubernetes_node_pool.this
@@ -133,26 +133,39 @@ resource "tencentcloud_kubernetes_node_pool" "this" {
   dynamic "auto_scaling_config" {
     for_each = try(each.value.auto_scaling_config, {})
     content {
-      instance_type      = try(auto_scaling_config.value.instance_type, var.worker_instance_type, null)
-      system_disk_type   = try(auto_scaling_config.value.system_disk_type, "CLOUD_PREMIUM")
-      system_disk_size   = try(auto_scaling_config.value.system_disk_size, 50)
+      instance_type              = try(auto_scaling_config.value.instance_type, var.worker_instance_type, null)
+      backup_instance_types      = try(auto_scaling_config.value.backup_instance_types, null)
+      system_disk_type           = try(auto_scaling_config.value.system_disk_type, "CLOUD_PREMIUM")
+      system_disk_size           = try(auto_scaling_config.value.system_disk_size, 50)
       orderly_security_group_ids = try(auto_scaling_config.value.orderly_security_group_ids, null)
-      key_ids            = try(auto_scaling_config.value.key_ids, null)
+      key_ids                    = try(auto_scaling_config.value.key_ids, null)
 
-      internet_charge_type       = try(auto_scaling_config.value.internet_charge_type, null) #"TRAFFIC_POSTPAID_BY_HOUR")
-      internet_max_bandwidth_out = try(auto_scaling_config.value.internet_max_bandwidth_out, null) # 10)
       public_ip_assigned         = try(auto_scaling_config.value.public_ip_assigned, false)
-      password                   = try(auto_scaling_config.value.password, random_password.worker_pwd.result, null)
-      enhanced_security_service  = try(auto_scaling_config.value.enhanced_security_service, true)
-      enhanced_monitor_service   = try(auto_scaling_config.value.enhanced_monitor_service, true)
-      host_name                  = try(auto_scaling_config.value.host_name, null)
-      host_name_style            = try(auto_scaling_config.value.host_name_style, null)
+      internet_charge_type       = try(auto_scaling_config.value.internet_charge_type, null)       #"TRAFFIC_POSTPAID_BY_HOUR")
+      internet_max_bandwidth_out = try(auto_scaling_config.value.internet_max_bandwidth_out, null) # 10)
+      bandwidth_package_id       = try(auto_scaling_config.value.bandwidth_package_id, null)
+      spot_instance_type         = try(auto_scaling_config.value.spot_instance_type, null)
+      spot_max_price             = try(auto_scaling_config.value.spot_max_price, null)
+
+      instance_charge_type                    = try(auto_scaling_config.value.instance_charge_type, null)
+      instance_charge_type_prepaid_period     = try(auto_scaling_config.value.instance_charge_type_prepaid_period, null)
+      instance_charge_type_prepaid_renew_flag = try(auto_scaling_config.value.instance_charge_type_prepaid_renew_flag, null)
+
+      cam_role_name = try(auto_scaling_config.value.cam_role_name, null)
+
+      password                  = try(auto_scaling_config.value.password, random_password.worker_pwd.result, null)
+      enhanced_security_service = try(auto_scaling_config.value.enhanced_security_service, true)
+      enhanced_monitor_service  = try(auto_scaling_config.value.enhanced_monitor_service, true)
+      host_name                 = try(auto_scaling_config.value.host_name, null)
+      host_name_style           = try(auto_scaling_config.value.host_name_style, null)
+      instance_name             = try(auto_scaling_config.value.instance_name, null)
+      instance_name_style       = try(auto_scaling_config.value.instance_name_style, null)
 
       dynamic "data_disk" {
         for_each = try(each.value.data_disk, [])
         content {
-          disk_type = try(data_disk.value.disk_type, "CLOUD_PREMIUM")
-          disk_size = try(data_disk.value.disk_size, 50)
+          disk_type            = try(data_disk.value.disk_type, "CLOUD_PREMIUM")
+          disk_size            = try(data_disk.value.disk_size, 50)
           delete_with_instance = try(data_disk.value.delete_with_instance, false)
         }
       }
@@ -160,7 +173,7 @@ resource "tencentcloud_kubernetes_node_pool" "this" {
   }
 
   labels = try(each.value.labels, null)
-  tags = try(each.value.tags, {})
+  tags   = try(each.value.tags, {})
 
   dynamic "taints" {
     for_each = try(each.value.taints, {})
@@ -177,20 +190,20 @@ resource "tencentcloud_kubernetes_node_pool" "this" {
       dynamic "data_disk" {
         for_each = try(each.value.data_disk, [])
         content {
-          disk_type = try(data_disk.value.disk_type, "CLOUD_PREMIUM")
-          disk_size = try(data_disk.value.disk_size, 50)
+          disk_type             = try(data_disk.value.disk_type, "CLOUD_PREMIUM")
+          disk_size             = try(data_disk.value.disk_size, 50)
           auto_format_and_mount = try(data_disk.value.auto_format_and_mount, true)
-          file_system = try(data_disk.value.file_system, "xfs")
-          mount_target = try(each.value.docker_graph_path, "/var/lib/containerd")
+          file_system           = try(data_disk.value.file_system, "xfs")
+          mount_target          = try(each.value.docker_graph_path, "/var/lib/containerd")
         }
       }
       docker_graph_path = try(each.value.docker_graph_path, "/var/lib/containerd")
-      extra_args = try(node_config.value.extra_args, null)
+      extra_args        = try(node_config.value.extra_args, null)
     }
   }
   lifecycle {
     ignore_changes = [
-      desired_capacity  // desired_capacity should be controlled by auto scaling
+      desired_capacity // desired_capacity should be controlled by auto scaling
     ]
   }
 }
@@ -211,14 +224,14 @@ resource "tencentcloud_kubernetes_serverless_node_pool" "this" {
 }
 
 resource "tencentcloud_kubernetes_cluster_endpoint" "endpoints" {
-  count = ! var.create_endpoint_with_cluster && (var.cluster_public_access || var.cluster_private_access) ? 1 : 0
-  cluster_id       = local.cluster_id
-  cluster_internet = var.cluster_public_access
-  cluster_internet_domain = var.cluster_internet_domain
+  count                           = !var.create_endpoint_with_cluster && (var.cluster_public_access || var.cluster_private_access) ? 1 : 0
+  cluster_id                      = local.cluster_id
+  cluster_internet                = var.cluster_public_access
+  cluster_internet_domain         = var.cluster_internet_domain
   cluster_internet_security_group = var.cluster_public_access ? var.cluster_security_group_id : null
-  cluster_intranet = var.cluster_private_access
-  cluster_intranet_domain = var.cluster_intranet_domain
-  cluster_intranet_subnet_id = var.cluster_private_access ? local.cluster_private_access_subnet_id : null
+  cluster_intranet                = var.cluster_private_access
+  cluster_intranet_domain         = var.cluster_intranet_domain
+  cluster_intranet_subnet_id      = var.cluster_private_access ? local.cluster_private_access_subnet_id : null
   depends_on = [
     tencentcloud_kubernetes_node_pool.this, tencentcloud_kubernetes_serverless_node_pool.this
   ]
