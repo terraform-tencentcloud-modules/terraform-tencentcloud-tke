@@ -19,7 +19,7 @@ module "pod-identify" {
       description   = "tke_pod_identify_demo"
       tags          = local.tags
       policies = [
-        "QcloudTICFullAccess"
+        "TICRoleInInfrastructureAsCode"
       ]
     }
   }
