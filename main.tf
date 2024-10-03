@@ -233,7 +233,9 @@ resource "tencentcloud_kubernetes_cluster_endpoint" "endpoints" {
   cluster_intranet_domain         = var.cluster_intranet_domain
   cluster_intranet_subnet_id      = var.cluster_private_access ? local.cluster_private_access_subnet_id : null
   depends_on = [
-    tencentcloud_kubernetes_node_pool.this, tencentcloud_kubernetes_serverless_node_pool.this
+    tencentcloud_kubernetes_node_pool.this,
+    tencentcloud_kubernetes_serverless_node_pool.this,
+    tencentcloud_kubernetes_native_node_pool.native_node_pools
   ]
 }
 
@@ -368,6 +370,8 @@ resource "tencentcloud_kubernetes_auth_attachment" "auth_attach" {
   auto_create_oidc_config                 = true
   auto_install_pod_identity_webhook_addon = true
   depends_on = [
-    tencentcloud_kubernetes_node_pool.this, tencentcloud_kubernetes_serverless_node_pool.this
+    tencentcloud_kubernetes_node_pool.this,
+    tencentcloud_kubernetes_serverless_node_pool.this,
+    tencentcloud_kubernetes_native_node_pool.native_node_pools
   ]
 }
