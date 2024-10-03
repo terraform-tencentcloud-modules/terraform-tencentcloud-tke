@@ -8,15 +8,15 @@ locals {
   }
 }
 
-module "pod-identify" {
-  source = "./modules/tke_pod_identify"
+module "pod-identity" {
+  source = "./modules/tke_pod_identity"
   uin = local.owner_uin
   cluster_id = local.cluster_id
   roles = {
-    tke_pod_identify_demo = {
-      name          = "tke_pod_identify_demo"
+    tke_pod_identity_demo = {
+      name          = "tke_pod_identity_demo"
       console_login = false
-      description   = "tke_pod_identify_demo"
+      description   = "tke_pod_identity_demo"
       tags          = local.tags
       policies = [
         "TICRoleInInfrastructureAsCode"
