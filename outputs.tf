@@ -54,3 +54,20 @@ output "client_certificate" {
   value       = try(local.kube_config.users[0].user["client-certificate-data"], "")
   description = "Base64 encoded cluster's client pem certificate."
 }
+
+# pod identity
+output "enable_pod_identity" {
+  value = var.enable_pod_identity
+}
+output "oidc_config_id" {
+  value = concat(tencentcloud_kubernetes_auth_attachment.auth_attach.*.id, [""])[0]
+}
+output "oidc_config_tke_default_issuer" {
+  value = concat(tencentcloud_kubernetes_auth_attachment.auth_attach.*.tke_default_issuer, [""])[0]
+}
+output "oidc_config_tke_default_jwks_uri" {
+  value = concat(tencentcloud_kubernetes_auth_attachment.auth_attach.*.tke_default_jwks_uri, [""])[0]
+}
+output "oidc_client_id" {
+  value = var.oidc_client_id
+}

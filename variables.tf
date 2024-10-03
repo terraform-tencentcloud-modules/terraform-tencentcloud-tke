@@ -275,3 +275,36 @@ variable "self_managed_serverless_node_groups" {
   type        = any
   default     = {}
 }
+
+################################################################################
+# Native Node Group
+################################################################################
+
+variable "native_node_pools" {
+  description = "Map of native node pool definitions to create. see `tencentcloud_kubernetes_native_node_pool` "
+  type        = any
+  default     = {}
+}
+
+################################################################################
+# Log configs
+################################################################################
+
+variable "log_configs" {
+  description = "Map of log_coinfigs. see `tencentcloud_kubernetes_log_config` , require provider version >= 1.81.130"
+  type        = any
+  default     = {}
+}
+
+################################################################################
+# Pod identity
+################################################################################
+variable "enable_pod_identity" {
+  type = bool
+  default = false
+  description = "enable pod identity"
+}
+variable "oidc_client_id" {
+  type = string
+  default = "sts.cloud.tencent.com"
+}
