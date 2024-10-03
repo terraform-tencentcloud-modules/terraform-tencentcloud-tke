@@ -375,3 +375,8 @@ resource "tencentcloud_kubernetes_auth_attachment" "auth_attach" {
     tencentcloud_kubernetes_native_node_pool.native_node_pools
   ]
 }
+
+data "tencentcloud_kubernetes_clusters" "cluster" {
+  depends_on = [tencentcloud_kubernetes_cluster_endpoint.endpoints]
+  cluster_id = local.cluster_id
+}

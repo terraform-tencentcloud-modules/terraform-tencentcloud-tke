@@ -30,10 +30,11 @@ output "kube_config_raw" {
   description = "TKE cluster's kube config in raw."
 }
 
-output "kube_config" {
-  value       = local.kube_config
-  description = "YAML decoded TKE cluster's kube config."
-}
+// Deprecated by data
+#output "kube_config" {
+#  value       = local.kube_config
+#  description = "YAML decoded TKE cluster's kube config."
+#}
 
 output "intranet_kube_config" {
   value       = concat(tencentcloud_kubernetes_cluster.cluster.*.kube_config_intranet, [""])[0]
@@ -53,6 +54,14 @@ output "client_key" {
 output "client_certificate" {
   value       = try(local.kube_config.users[0].user["client-certificate-data"], "")
   description = "Base64 encoded cluster's client pem certificate."
+}
+
+output "kube_config" {
+  value = concat(data.tencentcloud_kubernetes_clusters.cluster.list.*.kube_config, [""])[0]
+}
+
+output "kube_config_intranet" {
+  value = concat(data.tencentcloud_kubernetes_clusters.cluster.list.*.kube_config_intranet , [""])[0]
 }
 
 # pod identity
