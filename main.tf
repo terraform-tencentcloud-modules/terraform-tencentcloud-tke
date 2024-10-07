@@ -342,7 +342,7 @@ resource "tencentcloud_kubernetes_native_node_pool" "native_node_pools" {
       hosts       = try(each.value.management.hosts, []) # ["192.168.2.42 static.fake.com", "192.168.2.42 static.fake.com2"]
       kernel_args = try(each.value.management.kernel_args, []) # ["kernel.pid_max=65535", "fs.file-max=400000"]
     }
-    host_name_pattern = try(each.value.host_name_pattern, null) # "aaa{R:3}"
+    host_name_pattern = var.node_name_type == "lan-ip" ? null : try(each.value.host_name_pattern, null) # "aaa{R:3}"
     kubelet_args      = try(each.value.kubelet_args, []) # ["allowed-unsafe-sysctls=net.core.somaxconn", "root-dir=/var/lib/test"]
     dynamic "lifecycle" {
       for_each = try(each.value.lifecycle.pre_init, null) == null && try(each.value.lifecycle.post_init, null) == null ? [] : [1]
