@@ -371,3 +371,11 @@ variable "oidc_client_id" {
   type = string
   default = "sts.cloud.tencent.com"
 }
+################################################################################
+# self healing policies
+################################################################################
+variable "health_check_policies" {
+  default = {}
+  type = any
+  description = "self healing check policies, see `https://registry.terraform.io/providers/tencentcloudstack/tencentcloud/latest/docs/resources/kubernetes_health_check_policy`"
+}

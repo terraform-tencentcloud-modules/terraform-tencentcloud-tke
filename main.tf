@@ -381,6 +381,19 @@ resource "tencentcloud_kubernetes_native_node_pool" "native_node_pools" {
   }
 }
 
+resource "tencentcloud_kubernetes_health_check_policy" "kubernetes_health_check_policy" {
+  for_each = var.health_check_policies
+  cluster_id = local.cluster_id
+  name       = each.value.name
+  dynamic "rules" {
+    for_each = each.value.rules
+    content {
+      name                = rules.value.name # "OOMKilling"
+      auto_repair_enabled = try(rules.value.auto_repair_enabled, true)
+      enabled             = try(rules.value.enabled, true)
+    }
+  }
+}
 
 resource "tencentcloud_kubernetes_log_config" "kubernetes_log_configs" {
   for_each = var.enable_log_agent ? var.log_configs : {}
