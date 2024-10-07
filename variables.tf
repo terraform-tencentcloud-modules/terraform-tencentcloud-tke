@@ -248,8 +248,8 @@ variable "deletion_protection" {
 
 
 variable "node_pool_global_config" {
-  default = {}
-  type =any
+  default = null
+  type = any
   description = "Global config effective for all node pools, see `https://registry.terraform.io/providers/tencentcloudstack/tencentcloud/latest/docs/resources/kubernetes_cluster#node_pool_global_config`"
 }
 
