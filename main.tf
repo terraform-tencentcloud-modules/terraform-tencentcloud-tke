@@ -27,6 +27,18 @@ resource "tencentcloud_kubernetes_cluster" "cluster" {
   cluster_max_service_num         = var.cluster_max_service_num
   deletion_protection             = var.deletion_protection
 
+  auto_upgrade_cluster_level = var.auto_upgrade_cluster_level
+  is_non_static_ip_mode = var.is_non_static_ip_mode
+  node_name_type = var.node_name_type
+  cluster_deploy_type = var.cluster_deploy_type
+  cluster_desc = var.cluster_desc
+  cluster_ipvs = var.cluster_ipvs
+  ignore_cluster_cidr_conflict = var.ignore_cluster_cidr_conflict
+  ignore_service_cidr_conflict = var.network_type == "VPC-CNI" ? var.ignore_service_cidr_conflict : null
+  upgrade_instances_follow_cluster = var.upgrade_instances_follow_cluster
+  vpc_cni_type = var.vpc_cni_type
+  kube_proxy_mode = var.kube_proxy_mode
+
   dynamic "worker_config" {
     for_each = var.create_workers_with_cluster == true ? [1] : []
     content {
@@ -40,6 +52,21 @@ resource "tencentcloud_kubernetes_cluster" "cluster" {
       internet_max_bandwidth_out = var.worker_bandwidth_out
       # check the internal message on your account message center if needed
       password = random_password.worker_pwd.result
+    }
+  }
+
+  dynamic "node_pool_global_config" {
+    for_each = var.node_pool_global_config == null ? [] : [1]
+    content {
+      is_scale_in_enabled            = try(var.node_pool_global_config.is_scale_in_enabled ,true)
+      expander                       = try(var.node_pool_global_config.expander ,"random")
+      ignore_daemon_sets_utilization = try(var.node_pool_global_config.ignore_daemon_sets_utilization ,true)
+      max_concurrent_scale_in        = try(var.node_pool_global_config.max_concurrent_scale_in ,5)
+      scale_in_delay                 = try(var.node_pool_global_config.scale_in_delay ,15)
+      scale_in_unneeded_time         = try(var.node_pool_global_config.scale_in_unneeded_time ,15)
+      scale_in_utilization_threshold = try(var.node_pool_global_config.scale_in_utilization_threshold ,30)
+      skip_nodes_with_local_storage  = try(var.node_pool_global_config.skip_nodes_with_local_storage ,false)
+      skip_nodes_with_system_pods    = try(var.node_pool_global_config.skip_nodes_with_system_pods ,true)
     }
   }
 
@@ -213,7 +240,7 @@ resource "tencentcloud_kubernetes_serverless_node_pool" "this" {
   name       = try(each.value.name, each.key)
   cluster_id = local.cluster_id
   dynamic "serverless_nodes" {
-    for_each = try(each.value.serverless_nodes, null)
+    for_each = try(each.value.serverless_nodes, [])
     content {
       display_name = try(serverless_nodes.value.display_name, null)
       subnet_id    = try(serverless_nodes.value.subnet_id, null)
@@ -221,6 +248,7 @@ resource "tencentcloud_kubernetes_serverless_node_pool" "this" {
   }
   security_group_ids = try(each.value.security_group_ids, null)
   labels             = try(each.value.labels, null)
+  taints = try(each.value.taints, null)
 }
 
 resource "tencentcloud_kubernetes_cluster_endpoint" "endpoints" {
