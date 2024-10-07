@@ -248,7 +248,14 @@ resource "tencentcloud_kubernetes_serverless_node_pool" "this" {
   }
   security_group_ids = try(each.value.security_group_ids, null)
   labels             = try(each.value.labels, null)
-  taints = try(each.value.taints, null)
+  dynamic "taints" {
+    for_each = try(each.value.taints, [])
+    content {
+      effect = taints.value.effect
+      key = taints.value.key
+      value = taints.value.value
+    }
+  }
 }
 
 resource "tencentcloud_kubernetes_cluster_endpoint" "endpoints" {
