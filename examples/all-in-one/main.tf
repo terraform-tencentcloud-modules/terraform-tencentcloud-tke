@@ -62,6 +62,7 @@ module "tke-all-in-one" {
   self_managed_node_groups = {
     node_group_1 = {
       name                     = "test-ng-1"
+      deletion_protection = false
       max_size                 = 5
       min_size                 = 1
       subnet_ids               = ["subnet-xxxxxx", "subnet-xxxxxx", "subnet-xxxxxx"]
@@ -386,7 +387,11 @@ module "tke-all-in-one" {
   tags = {
     create: "terraform"
   }
-
+  # labels
+  labels = {
+    "label1" = "value1",
+    "label2" = "value2"
+  }
 }
 
 
