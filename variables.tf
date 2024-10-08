@@ -29,6 +29,12 @@ variable "tags" {
   description = "Tagged for all associated resource of this module."
 }
 
+variable "labels" {
+  default = {}
+  type = map(string)
+  description = "Labels of tke cluster nodes."
+}
+
 # Networks
 variable "vpc_id" {
   type        = string

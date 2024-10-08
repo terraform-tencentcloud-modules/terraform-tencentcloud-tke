@@ -6,6 +6,7 @@ resource "random_password" "worker_pwd" {
   override_special = "!#$%&*()-_=+[]{}<>:?"
 }
 
+
 resource "tencentcloud_kubernetes_cluster" "cluster" {
   count                           = var.create_cluster ? 1 : 0
   cluster_name                    = var.cluster_name
@@ -90,6 +91,7 @@ resource "tencentcloud_kubernetes_cluster" "cluster" {
   }
 
   tags = var.tags
+  labels = var.labels
 
   lifecycle {
     ignore_changes = [ // leave control to tencentcloud_kubernetes_cluster_endpoint
@@ -156,6 +158,7 @@ resource "tencentcloud_kubernetes_node_pool" "this" {
   multi_zone_subnet_policy = try(each.value.multi_zone_subnet_policy, "EQUALITY")
   node_os                  = try(each.value.node_os, var.cluster_os)
   delete_keep_instance     = try(each.value.delete_keep_instance, false)
+  deletion_protection      = try(each.value.deletion_protection, false)
 
   dynamic "auto_scaling_config" {
     for_each = try(each.value.auto_scaling_config, {})
