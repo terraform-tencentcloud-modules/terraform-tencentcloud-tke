@@ -154,10 +154,16 @@ module "tke-all-in-one" {
           auto_format_and_mount = true
         }
       ]
-      labels = {
-        label1 : "value1",
-        label2 : "value2"
-      }
+      labels = [
+        {
+          name: "label1",
+          value: "value1"
+        },
+        {
+          name: "label2",
+          value: "value2"
+        }
+      ]
       tags = [
         {
           resource_type = "cluster"

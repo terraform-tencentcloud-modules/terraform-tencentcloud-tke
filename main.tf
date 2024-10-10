@@ -285,10 +285,10 @@ resource "tencentcloud_kubernetes_native_node_pool" "native_node_pools" {
   type       = try(each.value.type, "Native") # Native only
 
   dynamic "labels" {
-    for_each = each.value.labels
+    for_each = try(each.value.labels, [])
     content {
-      name  = labels.key
-      value = labels.value
+      name  = labels.value.name
+      value = labels.value.value
     }
   }
 
@@ -356,7 +356,7 @@ resource "tencentcloud_kubernetes_native_node_pool" "native_node_pools" {
     }
     runtime_root_dir   = try(each.value.runtime_root_dir, "/var/lib/docker")
     enable_autoscaling = try(each.value.enable_autoscaling, true)
-    replicas           = try(each.value.replicas, 1) # Desired number of nodes.
+    replicas           = try(each.value.replicas, each.value.scaling.min_replicas) # Desired number of nodes.
     internet_accessible {
       max_bandwidth_out = try(each.value.internet_accessible.max_bandwidth_out, 50) # 50
       charge_type       = try(each.value.internet_accessible.charge_type, "TRAFFIC_POSTPAID_BY_HOUR") # Network billing method. Optional value is TRAFFIC_POSTPAID_BY_HOUR, BANDWIDTH_POSTPAID_BY_HOUR and BANDWIDTH_PACKAGE
@@ -381,6 +381,11 @@ resource "tencentcloud_kubernetes_native_node_pool" "native_node_pools" {
       name  = annotations.value.name # "node.tke.cloud.tencent.com/test-anno"
       value = annotations.value.value # "test"
     }
+  }
+  lifecycle {
+    ignore_changes = [
+      native[0].replicas
+    ]
   }
 }
 
