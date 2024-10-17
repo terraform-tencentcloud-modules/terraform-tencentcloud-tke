@@ -6,7 +6,6 @@ resource "random_password" "worker_pwd" {
   override_special = "!#$%&*()-_=+[]{}<>:?"
 }
 
-
 resource "tencentcloud_kubernetes_cluster" "cluster" {
   count                           = var.create_cluster ? 1 : 0
   cluster_name                    = var.cluster_name
@@ -39,6 +38,8 @@ resource "tencentcloud_kubernetes_cluster" "cluster" {
   upgrade_instances_follow_cluster = var.upgrade_instances_follow_cluster
   vpc_cni_type = var.vpc_cni_type
   kube_proxy_mode = var.kube_proxy_mode
+
+  runtime_version = var.runtime_version
 
   dynamic "worker_config" {
     for_each = var.create_workers_with_cluster == true ? [1] : []

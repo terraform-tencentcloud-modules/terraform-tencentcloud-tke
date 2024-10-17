@@ -46,6 +46,8 @@ module "tke-all-in-one" {
   vpc_cni_type = "tke-route-eni"
   kube_proxy_mode = null
 
+  runtime_version = "1.6.9"
+
   # workers
   create_workers_with_cluster = false
   node_pool_global_config = {

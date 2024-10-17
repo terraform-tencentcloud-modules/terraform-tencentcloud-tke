@@ -315,6 +315,12 @@ variable "kube_proxy_mode" {
   description = "Cluster kube-proxy mode, the available values include: 'kube-proxy-bpf'. Default is not set.When set to kube-proxy-bpf, cluster version greater than 1.14 and with Tencent Linux 2.4 is required."
 }
 
+variable "runtime_version" {
+  default = null
+  type = string
+  description = "Container Runtime version."
+}
+
 ################################################################################
 # TKE Addons
 ################################################################################
