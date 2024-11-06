@@ -215,6 +215,14 @@ resource "tencentcloud_kubernetes_node_pool" "this" {
     }
   }
 
+  dynamic "annotations" {
+    for_each = try(each.value.annotations, [])
+    content {
+      name = annotations.value.name
+      value = annotations.value.value
+    }
+  }
+
   dynamic "node_config" {
     for_each = try(each.value.node_config, null)
     content {
