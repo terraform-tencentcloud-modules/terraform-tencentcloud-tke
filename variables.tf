@@ -331,11 +331,11 @@ variable "cluster_addons" {
   default     = {}
 }
 
-variable "addon_configs" {
-  type = any
-  default = {}
-  description = "Map of cluster addon config, Addon name can be the map keys or set with `addon_name`, see `tencentcloud_kubernetes_addon_config`"
-}
+#variable "addon_configs" {
+#  type = any
+#  default = {}
+#  description = "Map of cluster addon config, Addon name can be the map keys or set with `addon_name`, see `tencentcloud_kubernetes_addon_config`"
+#}
 
 ################################################################################
 # Self Managed Node Group

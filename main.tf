@@ -441,14 +441,14 @@ resource "tencentcloud_kubernetes_auth_attachment" "auth_attach" {
   ]
 }
 
-resource "tencentcloud_kubernetes_addon_config" "addon_configs" {
-  depends_on = [tencentcloud_kubernetes_addon.addons]
-  for_each = var.addon_configs
-  cluster_id = local.cluster_id
-  addon_name    = try(each.value.addon_name, each.key)
-  addon_version = try(each.value.addon_version, null)
-  raw_values    = try(each.value.raw_values, "") == "" ? "" : jsonencode(each.value.raw_values)
-}
+#resource "tencentcloud_kubernetes_addon_config" "addon_configs" {
+#  depends_on = [tencentcloud_kubernetes_addon.addons]
+#  for_each = var.addon_configs
+#  cluster_id = local.cluster_id
+#  addon_name    = try(each.value.addon_name, each.key)
+#  addon_version = try(each.value.addon_version, null)
+#  raw_values    = try(each.value.raw_values, "") == "" ? "" : jsonencode(each.value.raw_values)
+#}
 
 data "tencentcloud_kubernetes_clusters" "cluster" {
   depends_on = [tencentcloud_kubernetes_cluster_endpoint.endpoints]
