@@ -382,6 +382,7 @@ resource "tencentcloud_kubernetes_native_node_pool" "native_node_pools" {
       }
     }
     key_ids = try(each.value.key_ids, null) # ["skey-9pcs2100"]
+    machine_type = try(each.value.machine_type, null) # "Node pool type. Example value: `NativeCVM` or `Native`. Default is `Native`.",
   }
 
   dynamic annotations {

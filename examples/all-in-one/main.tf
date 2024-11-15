@@ -199,6 +199,90 @@ module "tke-all-in-one" {
         }
       ]
     }
+    native_CVM = {
+      name = "test-native-cvm-pool"
+      host_name_pattern = "aaa{R:3}"
+      deletion_protection = false
+      scaling = {
+        min_replicas  = 1
+        max_replicas  = 5
+        create_policy = "ZoneEquality"
+      }
+      subnet_ids           = ["subnet-xxxxxx", "subnet-xxxxxx"]
+      instance_charge_type = "POSTPAID_BY_HOUR"
+      system_disk = {
+        disk_type = "CLOUD_SSD"
+        disk_size = 50
+      }
+      instance_types     = ["SA2.MEDIUM8"]
+      security_group_ids = ["sg-xxxxxx"]
+      auto_repair        = true
+      lifecycle = {
+        pre_init  = "ZWNobyBoZWxsb3dvcmxk"
+        post_init = "ZWNobyBoZWxsb3dvcmxk"
+      }
+      runtime_root_dir   = "/var/lib/docker"
+      enable_autoscaling = true
+
+      replicas = 2
+
+      internet_accessible = {
+        max_bandwidth_out = 50
+        charge_type       = "TRAFFIC_POSTPAID_BY_HOUR"
+      }
+      data_disks = [
+        {
+          disk_type             = "CLOUD_PREMIUM"
+          file_system           = "ext4"
+          disk_size             = 60
+          mount_target          = "/var/lib/docker"
+          auto_format_and_mount = true
+        }
+      ]
+      labels = [
+        {
+          name: "label1",
+          value: "value1"
+        },
+        {
+          name: "label2",
+          value: "value2"
+        }
+      ]
+      tags = [
+        {
+          resource_type = "cluster"
+          tags = {
+            "k1": "v1"
+          }
+        }
+      ]
+
+      taints = [
+        {
+          key    = "product"
+          value  = "coderider"
+          effect = "NoExecute"
+        },
+        {
+          key    = "dev"
+          value  = "coderider"
+          effect = "NoExecute"
+        }
+      ]
+
+      annotations = [
+        {
+          name  = "node.tke.cloud.tencent.com/test-anno"
+          value = "test"
+        },
+        {
+          name  = "node.tke.cloud.tencent.com/test-label"
+          value = "test"
+        }
+      ]
+      machine_type = "NativeCVM"
+    }
 
   }
   self_managed_serverless_node_groups = {
