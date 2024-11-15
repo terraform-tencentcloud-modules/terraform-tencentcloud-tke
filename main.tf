@@ -366,10 +366,14 @@ resource "tencentcloud_kubernetes_native_node_pool" "native_node_pools" {
     runtime_root_dir   = try(each.value.runtime_root_dir, "/var/lib/docker")
     enable_autoscaling = try(each.value.enable_autoscaling, true)
     replicas           = try(each.value.replicas, each.value.scaling.min_replicas) # Desired number of nodes.
-    internet_accessible {
-      max_bandwidth_out = try(each.value.internet_accessible.max_bandwidth_out, 50) # 50
-      charge_type       = try(each.value.internet_accessible.charge_type, "TRAFFIC_POSTPAID_BY_HOUR") # Network billing method. Optional value is TRAFFIC_POSTPAID_BY_HOUR, BANDWIDTH_POSTPAID_BY_HOUR and BANDWIDTH_PACKAGE
-      bandwidth_package_id = try(each.value.internet_accessible.charge_type, "TRAFFIC_POSTPAID_BY_HOUR") == "BANDWIDTH_PACKAGE" ? try(each.value.internet_accessible.bandwidth_package_id, null) : null
+    dynamic "internet_accessible" {
+      for_each = try(each.value.internet_accessible, null) == null ? [] : [1]
+      content {
+        max_bandwidth_out    = try(each.value.internet_accessible.max_bandwidth_out, 50) # 50
+        charge_type          = try(each.value.internet_accessible.charge_type, "TRAFFIC_POSTPAID_BY_HOUR")
+        # Network billing method. Optional value is TRAFFIC_POSTPAID_BY_HOUR, BANDWIDTH_POSTPAID_BY_HOUR and BANDWIDTH_PACKAGE
+        bandwidth_package_id = try(each.value.internet_accessible.charge_type, "TRAFFIC_POSTPAID_BY_HOUR") == "BANDWIDTH_PACKAGE" ? try(each.value.internet_accessible.bandwidth_package_id, null) : null
+      }
     }
     dynamic data_disks {
       for_each = each.value.data_disks
