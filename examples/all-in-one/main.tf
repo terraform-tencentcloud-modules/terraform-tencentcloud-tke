@@ -279,9 +279,13 @@ module "tke-all-in-one" {
         {
           name  = "node.tke.cloud.tencent.com/test-label"
           value = "test"
-        }
+        },
+        {    # enabling cgroupv2
+          name  = "node.tke.cloud.tencent.com/beta-image"
+          value = "ts4-public"
+        },
       ]
-      machine_type = "NativeCVM"
+      machine_type = "NativeCVM" # enabling native CVM
     }
 
   }
