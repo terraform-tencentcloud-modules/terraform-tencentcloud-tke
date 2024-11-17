@@ -399,7 +399,6 @@ resource "tencentcloud_kubernetes_native_node_pool" "native_node_pools" {
   lifecycle {
     ignore_changes = [
       native[0].replicas,
-      native[0].internet_accessible # this part is not idempotent now.
     ]
   }
 }
