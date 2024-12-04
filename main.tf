@@ -160,6 +160,7 @@ resource "tencentcloud_kubernetes_node_pool" "this" {
   node_os                  = try(each.value.node_os, var.cluster_os)
   delete_keep_instance     = try(each.value.delete_keep_instance, false)
   deletion_protection      = try(each.value.deletion_protection, false)
+  auto_update_instance_tags = try(each.value.auto_update_instance_tags, null)
 
   dynamic "auto_scaling_config" {
     for_each = try(each.value.auto_scaling_config, {})
@@ -242,7 +243,8 @@ resource "tencentcloud_kubernetes_node_pool" "this" {
   }
   lifecycle {
     ignore_changes = [
-      desired_capacity // desired_capacity should be controlled by auto scaling
+      desired_capacity, // desired_capacity should be controlled by auto scaling
+      auto_update_instance_tags // This field is forceNew, please do that by destroying resource but not modifying this parameter
     ]
   }
 }

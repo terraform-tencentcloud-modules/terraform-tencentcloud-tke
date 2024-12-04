@@ -73,6 +73,7 @@ module "tke-all-in-one" {
       enable_auto_scale        = true
       multi_zone_subnet_policy = "EQUALITY"
       node_os                  = "ubuntu20.04x86_64"
+      auto_update_instance_tags = true
 
       docker_graph_path = "/var/lib/docker"
       data_disk = [
