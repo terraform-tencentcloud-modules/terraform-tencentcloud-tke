@@ -27,6 +27,20 @@ resource "tencentcloud_kubernetes_cluster" "cluster" {
   cluster_max_service_num         = var.cluster_max_service_num
   deletion_protection             = var.deletion_protection
 
+  auto_upgrade_cluster_level = var.auto_upgrade_cluster_level
+  is_non_static_ip_mode = var.is_non_static_ip_mode
+  node_name_type = var.node_name_type
+  cluster_deploy_type = var.cluster_deploy_type
+  cluster_desc = var.cluster_desc
+  cluster_ipvs = var.cluster_ipvs
+  ignore_cluster_cidr_conflict = var.ignore_cluster_cidr_conflict
+  ignore_service_cidr_conflict = var.network_type == "VPC-CNI" ? var.ignore_service_cidr_conflict : null
+  upgrade_instances_follow_cluster = var.upgrade_instances_follow_cluster
+  vpc_cni_type = var.vpc_cni_type
+  kube_proxy_mode = var.kube_proxy_mode
+
+  runtime_version = var.runtime_version
+
   dynamic "worker_config" {
     for_each = var.create_workers_with_cluster == true ? [1] : []
     content {
@@ -40,6 +54,21 @@ resource "tencentcloud_kubernetes_cluster" "cluster" {
       internet_max_bandwidth_out = var.worker_bandwidth_out
       # check the internal message on your account message center if needed
       password = random_password.worker_pwd.result
+    }
+  }
+
+  dynamic "node_pool_global_config" {
+    for_each = var.node_pool_global_config == null ? [] : [1]
+    content {
+      is_scale_in_enabled            = try(var.node_pool_global_config.is_scale_in_enabled ,true)
+      expander                       = try(var.node_pool_global_config.expander ,"random")
+      ignore_daemon_sets_utilization = try(var.node_pool_global_config.ignore_daemon_sets_utilization ,true)
+      max_concurrent_scale_in        = try(var.node_pool_global_config.max_concurrent_scale_in ,5)
+      scale_in_delay                 = try(var.node_pool_global_config.scale_in_delay ,15)
+      scale_in_unneeded_time         = try(var.node_pool_global_config.scale_in_unneeded_time ,15)
+      scale_in_utilization_threshold = try(var.node_pool_global_config.scale_in_utilization_threshold ,30)
+      skip_nodes_with_local_storage  = try(var.node_pool_global_config.skip_nodes_with_local_storage ,false)
+      skip_nodes_with_system_pods    = try(var.node_pool_global_config.skip_nodes_with_system_pods ,true)
     }
   }
 
@@ -63,6 +92,7 @@ resource "tencentcloud_kubernetes_cluster" "cluster" {
   }
 
   tags = var.tags
+  labels = var.labels
 
   lifecycle {
     ignore_changes = [ // leave control to tencentcloud_kubernetes_cluster_endpoint
@@ -129,6 +159,8 @@ resource "tencentcloud_kubernetes_node_pool" "this" {
   multi_zone_subnet_policy = try(each.value.multi_zone_subnet_policy, "EQUALITY")
   node_os                  = try(each.value.node_os, var.cluster_os)
   delete_keep_instance     = try(each.value.delete_keep_instance, false)
+  deletion_protection      = try(each.value.deletion_protection, false)
+  auto_update_instance_tags = try(each.value.auto_update_instance_tags, null)
 
   dynamic "auto_scaling_config" {
     for_each = try(each.value.auto_scaling_config, {})
@@ -173,7 +205,7 @@ resource "tencentcloud_kubernetes_node_pool" "this" {
   }
 
   labels = try(each.value.labels, null)
-  tags   = try(each.value.tags, {})
+  tags   = merge(var.tags, try(each.value.tags, {}))
 
   dynamic "taints" {
     for_each = try(each.value.taints, {})
@@ -181,6 +213,14 @@ resource "tencentcloud_kubernetes_node_pool" "this" {
       key    = try(taints.value.key, null)
       value  = try(taints.value.value, null)
       effect = try(taints.value.effect, null)
+    }
+  }
+
+  dynamic "annotations" {
+    for_each = try(each.value.annotations, [])
+    content {
+      name = annotations.value.name
+      value = annotations.value.value
     }
   }
 
@@ -203,7 +243,8 @@ resource "tencentcloud_kubernetes_node_pool" "this" {
   }
   lifecycle {
     ignore_changes = [
-      desired_capacity // desired_capacity should be controlled by auto scaling
+      desired_capacity, // desired_capacity should be controlled by auto scaling
+      auto_update_instance_tags // This field is forceNew, please do that by destroying resource but not modifying this parameter
     ]
   }
 }
@@ -213,7 +254,7 @@ resource "tencentcloud_kubernetes_serverless_node_pool" "this" {
   name       = try(each.value.name, each.key)
   cluster_id = local.cluster_id
   dynamic "serverless_nodes" {
-    for_each = try(each.value.serverless_nodes, null)
+    for_each = try(each.value.serverless_nodes, [])
     content {
       display_name = try(serverless_nodes.value.display_name, null)
       subnet_id    = try(serverless_nodes.value.subnet_id, null)
@@ -221,6 +262,14 @@ resource "tencentcloud_kubernetes_serverless_node_pool" "this" {
   }
   security_group_ids = try(each.value.security_group_ids, null)
   labels             = try(each.value.labels, null)
+  dynamic "taints" {
+    for_each = try(each.value.taints, [])
+    content {
+      effect = taints.value.effect
+      key = taints.value.key
+      value = taints.value.value
+    }
+  }
 }
 
 resource "tencentcloud_kubernetes_cluster_endpoint" "endpoints" {
@@ -233,6 +282,182 @@ resource "tencentcloud_kubernetes_cluster_endpoint" "endpoints" {
   cluster_intranet_domain         = var.cluster_intranet_domain
   cluster_intranet_subnet_id      = var.cluster_private_access ? local.cluster_private_access_subnet_id : null
   depends_on = [
-    tencentcloud_kubernetes_node_pool.this, tencentcloud_kubernetes_serverless_node_pool.this
+    tencentcloud_kubernetes_node_pool.this,
+    tencentcloud_kubernetes_serverless_node_pool.this,
+    tencentcloud_kubernetes_native_node_pool.native_node_pools
   ]
+}
+
+
+resource "tencentcloud_kubernetes_native_node_pool" "native_node_pools" {
+  for_each = var.native_node_pools
+  name       = try(each.value.name, each.key)
+  cluster_id = local.cluster_id
+  type       = try(each.value.type, "Native") # Native only
+
+  dynamic "labels" {
+    for_each = try(each.value.labels, [])
+    content {
+      name  = labels.value.name
+      value = labels.value.value
+    }
+  }
+
+  dynamic "taints" {
+    for_each = each.value.taints
+    content {
+      key    = taints.value.key // "product"
+      value  = taints.value.value //"coderider"
+      effect = taints.value.effect // "NoExecute"
+    }
+  }
+
+  dynamic "tags" {
+    for_each = try(each.value.tags, [])
+    content {
+      resource_type = tags.value.resource_type # "machine"
+      dynamic "tags" {
+        for_each = tags.value.tags
+        content {
+          key   = tags.key
+          value = tags.value
+        }
+      }
+    }
+  }
+
+  deletion_protection = try(each.value.deletion_protection, false) // false
+  unschedulable       = try(each.value.unschedulable, false) // false
+
+  native {
+    scaling {
+      min_replicas  = each.value.scaling.min_replicas
+      max_replicas  = each.value.scaling.max_replicas
+      create_policy = try(each.value.scaling.create_policy, "ZoneEquality") // Node pool expansion strategy. ZoneEquality: multiple availability zones are broken up; ZonePriority: the preferred availability zone takes precedence.
+    }
+    subnet_ids           = each.value.subnet_ids # ["subnet-itb6d123"]
+    instance_charge_type = try(each.value.instance_charge_type, "POSTPAID_BY_HOUR") # "PREPAID" Node billing type. PREPAID is a yearly and monthly subscription, POSTPAID_BY_HOUR is a pay-as-you-go plan. The default is POSTPAID_BY_HOUR.
+    system_disk {
+      disk_type = try(each.value.system_disk.disk_type, "CLOUD_SSD") # Cloud disk type. Valid values: CLOUD_PREMIUM: Premium Cloud Storage, CLOUD_SSD: cloud SSD disk, CLOUD_BSSD: Basic SSD, CLOUD_HSSD: Enhanced SSD.
+      disk_size = try(each.value.system_disk.disk_size, 50)
+    }
+    instance_types     = try(each.value.instance_types, ["SA2.MEDIUM2"]) # ["SA2.MEDIUM2"]
+    security_group_ids = try(each.value.security_group_ids, []) #["sg-7tum9120"]
+    auto_repair        = try(each.value.auto_repair, false) # false
+    dynamic "instance_charge_prepaid" {
+      for_each = try(each.value.instance_charge_type, "POSTPAID_BY_HOUR") == "PREPAID" ? [1] : []
+      content {
+        period     = try(each.value.instance_charge_prepaid.period, 1) #  Postpaid billing cycle, unit (month): 1, 2, 3, 4, 5,, 6, 7, 8, 9, 10, 11, 12, 24, 36, 48, 60.
+        renew_flag = try(each.value.instance_charge_prepaid.renew_flag, "NOTIFY_AND_AUTO_RENEW") # NOTIFY_AND_AUTO_RENEW,NOTIFY_AND_MANUAL_RENEW,DISABLE_NOTIFY_AND_MANUAL_RENEW
+      }
+    }
+    management {
+      nameservers = try(each.value.management.nameservers, ["183.60.83.19", "183.60.82.98"])
+      hosts       = try(each.value.management.hosts, []) # ["192.168.2.42 static.fake.com", "192.168.2.42 static.fake.com2"]
+      kernel_args = try(each.value.management.kernel_args, []) # ["kernel.pid_max=65535", "fs.file-max=400000"]
+    }
+    host_name_pattern = var.node_name_type == "lan-ip" ? null : try(each.value.host_name_pattern, null) # "aaa{R:3}"
+    kubelet_args      = try(each.value.kubelet_args, []) # ["allowed-unsafe-sysctls=net.core.somaxconn", "root-dir=/var/lib/test"]
+    dynamic "lifecycle" {
+      for_each = try(each.value.lifecycle.pre_init, null) == null && try(each.value.lifecycle.post_init, null) == null ? [] : [1]
+      content {
+        pre_init  = try(each.value.lifecycle.pre_init, null) # "ZWNobyBoZWxsb3dvcmxk"
+        post_init = try(each.value.lifecycle.post_init, null) # "ZWNobyBoZWxsb3dvcmxk"
+      }
+    }
+    runtime_root_dir   = try(each.value.runtime_root_dir, "/var/lib/docker")
+    enable_autoscaling = try(each.value.enable_autoscaling, true)
+    replicas           = try(each.value.replicas, each.value.scaling.min_replicas) # Desired number of nodes.
+    dynamic "internet_accessible" {
+      for_each = try(each.value.internet_accessible, null) == null ? [] : [1]
+      content {
+        max_bandwidth_out    = try(each.value.internet_accessible.max_bandwidth_out, 50) # 50
+        charge_type          = try(each.value.internet_accessible.charge_type, "TRAFFIC_POSTPAID_BY_HOUR")
+        # Network billing method. Optional value is TRAFFIC_POSTPAID_BY_HOUR, BANDWIDTH_POSTPAID_BY_HOUR and BANDWIDTH_PACKAGE
+        bandwidth_package_id = try(each.value.internet_accessible.charge_type, "TRAFFIC_POSTPAID_BY_HOUR") == "BANDWIDTH_PACKAGE" ? try(each.value.internet_accessible.bandwidth_package_id, null) : null
+      }
+    }
+    dynamic data_disks {
+      for_each = each.value.data_disks
+      content {
+        disk_type             = try(data_disks.value.disk_type, "CLOUD_SSD") #"CLOUD_PREMIUM" alid values: CLOUD_PREMIUM: Premium Cloud Storage, CLOUD_SSD: cloud SSD disk, CLOUD_BSSD: Basic SSD, CLOUD_HSSD: Enhanced SSD, CLOUD_TSSD: Tremendous SSD, LOCAL_NVME: local NVME disk.
+        file_system           = try(data_disks.value.file_system ,"ext4")
+        disk_size             = try(data_disks.value.disk_size, 100) # 60
+        mount_target          = try(data_disks.value.mount_target, "/var/lib/docker")
+        auto_format_and_mount = try(data_disks.value.auto_format_and_mount, true) # true
+      }
+    }
+    key_ids = try(each.value.key_ids, null) # ["skey-9pcs2100"]
+    machine_type = try(each.value.machine_type, null) # "Node pool type. Example value: `NativeCVM` or `Native`. Default is `Native`.",
+  }
+
+  dynamic annotations {
+    for_each = each.value.annotations
+    content {
+      name  = annotations.value.name # "node.tke.cloud.tencent.com/test-anno"
+      value = annotations.value.value # "test"
+    }
+  }
+  lifecycle {
+    ignore_changes = [
+      native[0].replicas,
+    ]
+  }
+}
+
+resource "tencentcloud_kubernetes_health_check_policy" "kubernetes_health_check_policy" {
+  for_each = var.health_check_policies
+  cluster_id = local.cluster_id
+  name       = each.value.name
+  dynamic "rules" {
+    for_each = each.value.rules
+    content {
+      name                = rules.value.name # "OOMKilling"
+      auto_repair_enabled = try(rules.value.auto_repair_enabled, true)
+      enabled             = try(rules.value.enabled, true)
+    }
+  }
+}
+
+resource "tencentcloud_kubernetes_log_config" "kubernetes_log_configs" {
+  for_each = var.enable_log_agent ? var.log_configs : {}
+  log_config_name = each.value.log_config_name
+  cluster_id      = local.cluster_id
+  logset_id       = each.value.logset_id
+  log_config = jsonencode({
+    "apiVersion" : "cls.cloud.tencent.com/v1",
+    "kind" : "LogConfig",
+    "metadata" : {
+      "name" : each.value.log_config_name
+    },
+    "spec" : each.value.spec
+  })
+}
+
+resource "tencentcloud_kubernetes_auth_attachment" "auth_attach" {
+  count = var.enable_pod_identity ? 1 : 0
+  cluster_id                              = local.cluster_id
+  use_tke_default                         = true
+  auto_create_discovery_anonymous_auth    = true
+  auto_create_oidc_config                 = true
+  auto_install_pod_identity_webhook_addon = true
+  depends_on = [
+    tencentcloud_kubernetes_node_pool.this,
+    tencentcloud_kubernetes_serverless_node_pool.this,
+    tencentcloud_kubernetes_native_node_pool.native_node_pools
+  ]
+}
+
+#resource "tencentcloud_kubernetes_addon_config" "addon_configs" {
+#  depends_on = [tencentcloud_kubernetes_addon.addons]
+#  for_each = var.addon_configs
+#  cluster_id = local.cluster_id
+#  addon_name    = try(each.value.addon_name, each.key)
+#  addon_version = try(each.value.addon_version, null)
+#  raw_values    = try(each.value.raw_values, "") == "" ? "" : jsonencode(each.value.raw_values)
+#}
+
+data "tencentcloud_kubernetes_clusters" "cluster" {
+  depends_on = [tencentcloud_kubernetes_cluster_endpoint.endpoints]
+  cluster_id = local.cluster_id
 }

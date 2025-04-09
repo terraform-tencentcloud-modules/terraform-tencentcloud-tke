@@ -29,6 +29,12 @@ variable "tags" {
   description = "Tagged for all associated resource of this module."
 }
 
+variable "labels" {
+  default = {}
+  type = map(string)
+  description = "Labels of tke cluster nodes."
+}
+
 # Networks
 variable "vpc_id" {
   type        = string
@@ -246,15 +252,90 @@ variable "deletion_protection" {
   description = "Indicates whether cluster deletion protection is enabled. Default is false."
 }
 
+
+variable "node_pool_global_config" {
+  default = null
+  type = any
+  description = "Global config effective for all node pools, see `https://registry.terraform.io/providers/tencentcloudstack/tencentcloud/latest/docs/resources/kubernetes_cluster#node_pool_global_config`"
+}
+
+variable "auto_upgrade_cluster_level" {
+  default = false
+  type = bool
+  description = "Whether the cluster level auto upgraded, valid for managed cluster."
+}
+variable "is_non_static_ip_mode" {
+  default = false
+  type = bool
+  description = "Indicates whether non-static ip mode is enabled. Default is false."
+}
+variable "node_name_type" {
+  default = "lan-ip"
+  description = "Node name type of Cluster, the available values include: 'lan-ip' and 'hostname', Default is 'lan-ip'"
+  type = string
+}
+variable "cluster_deploy_type" {
+  type = string
+  default = "MANAGED_CLUSTER"
+  description = "Deployment type of the cluster, the available values include: 'MANAGED_CLUSTER' and 'INDEPENDENT_CLUSTER'. Default is 'MANAGED_CLUSTER'."
+}
+variable "cluster_desc" {
+  default = ""
+  description = "Description of the cluster."
+  type =string
+}
+variable "cluster_ipvs" {
+  default = true
+  type = bool
+  description = "Indicates whether ipvs is enabled. Default is true. False means iptables is enabled."
+}
+variable "ignore_cluster_cidr_conflict" {
+  default = false
+  description = " Indicates whether to ignore the cluster cidr conflict error. Default is false."
+  type = bool
+}
+variable "ignore_service_cidr_conflict" {
+  default = false
+  type = bool
+  description = "Indicates whether to ignore the service cidr conflict error. Only valid in VPC-CNI mode."
+}
+variable "upgrade_instances_follow_cluster" {
+  default = false
+  description = " Indicates whether upgrade all instances when cluster_version change. Default is false."
+  type = bool
+}
+variable "vpc_cni_type" {
+  default = "tke-route-eni"
+  type = string
+  description = "Distinguish between shared network card multi-IP mode and independent network card mode. Fill in tke-route-eni for shared network card multi-IP mode and tke-direct-eni for independent network card mode. The default is shared network card mode. When it is necessary to turn off the vpc-cni container network capability, both eni_subnet_ids and vpc_cni_type must be set to empty."
+}
+variable "kube_proxy_mode" {
+  default = null
+  type =string
+  description = "Cluster kube-proxy mode, the available values include: 'kube-proxy-bpf'. Default is not set.When set to kube-proxy-bpf, cluster version greater than 1.14 and with Tencent Linux 2.4 is required."
+}
+
+variable "runtime_version" {
+  default = null
+  type = string
+  description = "Container Runtime version."
+}
+
 ################################################################################
 # TKE Addons
 ################################################################################
 
 variable "cluster_addons" {
-  description = "Map of cluster addon configurations to enable for the cluster. Addon name can be the map keys or set with `name`, see `tencentcloud_kubernetes_addon_attachment`"
+  description = "Map of cluster addon configurations to enable for the cluster. Addon name can be the map keys or set with `addon_name`, see `tencentcloud_kubernetes_addon_attachment`"
   type        = any
   default     = {}
 }
+
+#variable "addon_configs" {
+#  type = any
+#  default = {}
+#  description = "Map of cluster addon config, Addon name can be the map keys or set with `addon_name`, see `tencentcloud_kubernetes_addon_config`"
+#}
 
 ################################################################################
 # Self Managed Node Group
@@ -274,4 +355,45 @@ variable "self_managed_serverless_node_groups" {
   description = "Map of self-managed serverless node pool definitions to create. see `tencentcloud_kubernetes_serverless_node_pool` "
   type        = any
   default     = {}
+}
+
+################################################################################
+# Native Node Group
+################################################################################
+
+variable "native_node_pools" {
+  description = "Map of native node pool definitions to create. see `tencentcloud_kubernetes_native_node_pool` "
+  type        = any
+  default     = {}
+}
+
+################################################################################
+# Log configs
+################################################################################
+
+variable "log_configs" {
+  description = "Map of log_coinfigs. see `tencentcloud_kubernetes_log_config` , require provider version >= 1.81.130"
+  type        = any
+  default     = {}
+}
+
+################################################################################
+# Pod identity
+################################################################################
+variable "enable_pod_identity" {
+  type = bool
+  default = false
+  description = "enable pod identity"
+}
+variable "oidc_client_id" {
+  type = string
+  default = "sts.cloud.tencent.com"
+}
+################################################################################
+# self healing policies
+################################################################################
+variable "health_check_policies" {
+  default = {}
+  type = any
+  description = "self healing check policies, see `https://registry.terraform.io/providers/tencentcloudstack/tencentcloud/latest/docs/resources/kubernetes_health_check_policy`"
 }
