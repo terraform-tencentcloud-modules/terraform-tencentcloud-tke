@@ -237,7 +237,7 @@ NOTE:
 | cluster_audit_log_topic_id       |   string    | null                      | Specify id of existing CLS log topic, or auto create a new topic by leave it empty.                                                                              |
 | cluster_service_cidr             |   string    | null                      | A network address block of the service. Different from vpc cidr and cidr of other clusters within this vpc. Must be in 10./192.168/172.[16-31] segments.         |
 | enhanced_monitor_service         |    bool     | false                     | To specify whether to enable cloud monitor service.                                                                                                              |
-| cluster_addons                   |  map(map)   | null                      | Map of cluster addon configurations to enable for the cluster. Addon name can be the map keys or set with `name`, see `tencentcloud_kubernetes_addon_attachment` |
+| cluster_addons                   |  map(map)   | null                      | Map of cluster addon configurations to enable for the cluster. Addon name can be the map keys or set with `name`, see `tencentcloud_kubernetes_addon` |
 | self_managed_node_groups         |  map(map)   | null                      | Map of self-managed node pool definitions to create. see `tencentcloud_kubernetes_node_pool`                                                                     |
 
 |Name|Description|

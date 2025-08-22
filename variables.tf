@@ -326,7 +326,7 @@ variable "runtime_version" {
 ################################################################################
 
 variable "cluster_addons" {
-  description = "Map of cluster addon configurations to enable for the cluster. Addon name can be the map keys or set with `addon_name`, see `tencentcloud_kubernetes_addon_attachment`"
+  description = "Map of cluster addon configurations to enable for the cluster. Addon name can be the map keys or set with `addon_name`, see `tencentcloud_kubernetes_addon`"
   type        = any
   default     = {}
 }
